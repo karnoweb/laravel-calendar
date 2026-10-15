@@ -1,8 +1,8 @@
 <div class="kw-calendar__toolbar">
     <div class="kw-calendar__nav">
         <button type="button" class="kw-btn" wire:click="today">{{ $t('toolbar.today') }}</button>
-        <button type="button" class="kw-btn kw-btn--icon" wire:click="previous" aria-label="{{ $t('toolbar.previous') }}"><span aria-hidden="true">{{ $dir === 'rtl' ? '›' : '‹' }}</span></button>
-        <button type="button" class="kw-btn kw-btn--icon" wire:click="next" aria-label="{{ $t('toolbar.next') }}"><span aria-hidden="true">{{ $dir === 'rtl' ? '‹' : '›' }}</span></button>
+        <button type="button" class="kw-btn kw-btn--icon" wire:click="previous" aria-label="{{ $t('toolbar.previous') }}"><svg class="kw-chev" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="kw-btn kw-btn--icon" wire:click="next" aria-label="{{ $t('toolbar.next') }}"><svg class="kw-chev kw-chev--next" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <h2 class="kw-calendar__title" aria-live="polite">{{ $title }}</h2>
     </div>
 

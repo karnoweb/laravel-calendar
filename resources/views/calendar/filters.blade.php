@@ -13,7 +13,7 @@
                 wire:click="toggleSource('{{ $source['key'] }}')"
                 wire:key="src-{{ $source['key'] }}"
             >
-                <span class="kw-chip__dot" aria-hidden="true"></span>{{ Tr::label($source['label'], $locale) }}
+                <span class="kw-chip__dot" aria-hidden="true"></span><span class="kw-chip__label">{{ Tr::label($source['label'], $locale) }}</span><span class="kw-chip__check" aria-hidden="true"></span>
             </button>
         @endforeach
 
