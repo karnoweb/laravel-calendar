@@ -1,0 +1,1550 @@
+{
+  "project": "karnoweb/laravel-calendar",
+  "phases": {
+    "1": [
+      {
+        "path": "composer.json",
+        "purpose": "وابستگی‌ها، discovery، PSR-4، scripts و پشتیبانی نسخه‌ای"
+      },
+      {
+        "path": "package.json",
+        "purpose": "اسکریپت build/watch/test دارایی‌های مرورگر"
+      },
+      {
+        "path": "vite.config.js",
+        "purpose": "Build مستقل CSS/JS و خروجی publish قابل نصب"
+      },
+      {
+        "path": "phpunit.xml",
+        "purpose": "تست PHPUnit/Testbench با suiteهای جدا"
+      },
+      {
+        "path": "phpstan.neon",
+        "purpose": "تحلیل ایستا و سطح سخت‌گیری"
+      },
+      {
+        "path": "pint.json",
+        "purpose": "استاندارد یکسان قالب کد"
+      },
+      {
+        "path": ".gitignore",
+        "purpose": "جلوگیری از انتشار vendor، node_modules و build test"
+      },
+      {
+        "path": ".gitattributes",
+        "purpose": "تنظیم export-ignore برای فایل‌های توسعه"
+      },
+      {
+        "path": "LICENSE.md",
+        "purpose": "مجوز محصول مستقل"
+      },
+      {
+        "path": "config/calendar.php",
+        "purpose": "مقادیر پیش‌فرض محدودیت، زمان، قابلیت‌ها، امنیت، ظاهر و assets"
+      },
+      {
+        "path": "src/CalendarServiceProvider.php",
+        "purpose": "ثبت DI، Livewire alias، config، views، lang، assets"
+      },
+      {
+        "path": "src/Facades/Calendar.php",
+        "purpose": "Facade فقط به مدیر بدون state سراسری"
+      },
+      {
+        "path": "src/Support/CalendarManager.php",
+        "purpose": "make/register/resolve و دسترسی به Registry"
+      },
+      {
+        "path": "src/Support/CalendarRegistry.php",
+        "purpose": "کلید تقویم به Factory class و رد تکرار"
+      },
+      {
+        "path": "src/Support/CalendarBuilder.php",
+        "purpose": "Builder fluent و build immutable تعریف"
+      },
+      {
+        "path": "src/Support/CalendarDefinitionValidator.php",
+        "purpose": "کنترل منابع/Handler/Settings و View نامعتبر"
+      },
+      {
+        "path": "src/Support/ContextFactory.php",
+        "purpose": "تولید context سروری مجاز در هر درخواست"
+      },
+      {
+        "path": "src/Support/SourceRegistry.php",
+        "purpose": "ثبت و resolve source با key پایدار"
+      },
+      {
+        "path": "src/Support/EventReferenceCodec.php",
+        "purpose": "serialize امن سه‌تایی source/id/occurrence بدون parse prefix"
+      },
+      {
+        "path": "src/Support/FilterValidator.php",
+        "purpose": "فیلترهای allowlist و ارزش‌های معتبر"
+      },
+      {
+        "path": "src/Contracts/CalendarFactory.php",
+        "purpose": "قرارداد تولید مجدد تعریف در هر request"
+      },
+      {
+        "path": "src/Contracts/ScopeResolver.php",
+        "purpose": "قرارداد محدوده و هویت معتبر سرور"
+      },
+      {
+        "path": "src/Contracts/TimezoneResolver.php",
+        "purpose": "قرارداد timezone امن، default config app"
+      },
+      {
+        "path": "src/Contracts/EventProvider.php",
+        "purpose": "fetch/find و capabilities خواندن با scope"
+      },
+      {
+        "path": "src/Contracts/ActionHandler.php",
+        "purpose": "execute فرمان whitelist‌شده با نتیجه استاندارد"
+      },
+      {
+        "path": "src/Contracts/CalendarObserver.php",
+        "purpose": "دریافت مشاهدات بی‌اطلاعات حساس"
+      },
+      {
+        "path": "src/Contracts/PreferenceStore.php",
+        "purpose": "حفظ اختیاری View/Filter بدون تأثیر بر مجوز"
+      },
+      {
+        "path": "src/Data/CalendarContext.php",
+        "purpose": "actor/scope/locale/timezone/calendarKey/instance"
+      },
+      {
+        "path": "src/Data/CalendarDefinition.php",
+        "purpose": "key/sources/handler/settings/views immutable"
+      },
+      {
+        "path": "src/Data/CalendarSettings.php",
+        "purpose": "view/calendarSystem/limits/features/appearance/urlSync"
+      },
+      {
+        "path": "src/Data/CalendarViews.php",
+        "purpose": "نام Viewهای قابل جایگزینی، بدون HTML آزاد"
+      },
+      {
+        "path": "src/Data/CalendarEventData.php",
+        "purpose": "source/id/title/start/end/allDay/capabilities/version"
+      },
+      {
+        "path": "src/Data/EventReference.php",
+        "purpose": "ترکیب منبع، شناسه رکورد و شناسه occurrence"
+      },
+      {
+        "path": "src/Data/EventQuery.php",
+        "purpose": "range/filters/search/cursor/limit/requestKey"
+      },
+      {
+        "path": "src/Data/EventPage.php",
+        "purpose": "items/nextCursor/total/countExact/hasMore/truncated"
+      },
+      {
+        "path": "src/Data/EventSourceData.php",
+        "purpose": "key/label/color/readOnly/capabilities/visible"
+      },
+      {
+        "path": "src/Data/CalendarFilterData.php",
+        "purpose": "source/field/options/default/validation"
+      },
+      {
+        "path": "src/Data/ActionCommand.php",
+        "purpose": "operationId/action/reference/payload/version"
+      },
+      {
+        "path": "src/Data/ActionResult.php",
+        "purpose": "status/error/fieldErrors/changedEvents/refreshRanges"
+      },
+      {
+        "path": "src/Data/ActionCapabilities.php",
+        "purpose": "مجوزهای نمایشی read/create/update/delete/move/resize"
+      },
+      {
+        "path": "src/Data/DateRange.php",
+        "purpose": "بازه دقیق UTC و timezone معنایی"
+      },
+      {
+        "path": "src/Enums/CalendarSystem.php",
+        "purpose": "Gregorian و Jalali"
+      },
+      {
+        "path": "src/Enums/CalendarView.php",
+        "purpose": "Month/Week/Day/List"
+      },
+      {
+        "path": "src/Enums/ActionStatus.php",
+        "purpose": "وضعیت‌های استاندارد و machine-readable"
+      },
+      {
+        "path": "src/Enums/CalendarAction.php",
+        "purpose": "فهرست سخت‌گیرانه نوع عملیات"
+      },
+      {
+        "path": "src/Exceptions/InvalidCalendarDefinition.php",
+        "purpose": "شکست واضح config/definition"
+      },
+      {
+        "path": "src/Exceptions/CalendarAccessDenied.php",
+        "purpose": "رد scope/role/anonymous بدون افشای داده"
+      },
+      {
+        "path": "src/Exceptions/InvalidCalendarDate.php",
+        "purpose": "زمان مبهم، ناموجود یا نامعتبر"
+      },
+      {
+        "path": "src/Providers/DenyAnonymousScopeResolver.php",
+        "purpose": "پیش‌فرض بدون مجوز خواندن/نوشتن مهمان"
+      },
+      {
+        "path": "src/Providers/AppTimezoneResolver.php",
+        "purpose": "تعیین timezone از تنظیم میزبان"
+      },
+      {
+        "path": "src/Providers/NullCalendarObserver.php",
+        "purpose": "Hook نظارتی پیش‌فرض بی‌اثر"
+      },
+      {
+        "path": "src/Providers/SessionPreferenceStore.php",
+        "purpose": "حفظ state اختیاری در session کاربر"
+      },
+      {
+        "path": "src/Actions/ActionDispatcher.php",
+        "purpose": "resolve handler و action allowlist، خطای ثابت"
+      },
+      {
+        "path": "src/Actions/ReadDispatcher.php",
+        "purpose": "جمع آوری ایمن چند Provider با فیلتر/Scope"
+      },
+      {
+        "path": "resources/lang/fa/calendar.php",
+        "purpose": "ترجمه پیام عمومی و خطاهای فاز اول"
+      },
+      {
+        "path": "resources/lang/en/calendar.php",
+        "purpose": "ترجمه کامل متن‌ها به انگلیسی"
+      },
+      {
+        "path": "resources/views/livewire/calendar.blade.php",
+        "purpose": "پوسته موقت بدون رفتار نهایی، نصب alias را ثابت کند"
+      },
+      {
+        "path": "src/Livewire/Calendar.php",
+        "purpose": "کامپوننت اولیه با mount/resolve/render امن و بدون closure state"
+      },
+      {
+        "path": "tests/TestCase.php",
+        "purpose": "Workbench test case و bootstrap تنظیمات"
+      },
+      {
+        "path": "tests/Unit/BuilderAndRegistryTest.php",
+        "purpose": "immutability، تکرار و invalid settings"
+      },
+      {
+        "path": "tests/Unit/EventReferenceTest.php",
+        "purpose": "عدم برخورد منبع‌ها و نامعتبر بودن شناسه"
+      },
+      {
+        "path": "tests/Feature/ScopeFailClosedTest.php",
+        "purpose": "مهمان و source نامعلوم نباید داده دریافت کنند"
+      },
+      {
+        "path": "tests/Feature/PackageBootTest.php",
+        "purpose": "نصب بدون route/migration و ثبت Livewire component"
+      }
+    ],
+    "2": [
+      {
+        "path": "src/Calendar/CalendarEngine.php",
+        "purpose": "API محاسبه محدوده و nav در یک هسته مشترک"
+      },
+      {
+        "path": "src/Calendar/GregorianCalendarSystem.php",
+        "purpose": "ماه/سال/هفته/کبیسه میلادی"
+      },
+      {
+        "path": "src/Calendar/JalaliCalendarSystem.php",
+        "purpose": "ماه/سال/روز شمسی و تبدیل دقیق تاریخ"
+      },
+      {
+        "path": "src/Calendar/CalendarSystemRegistry.php",
+        "purpose": "انتخاب موتور Gregorian/Jalali با تنظیم معتبر"
+      },
+      {
+        "path": "src/Calendar/CalendarCursor.php",
+        "purpose": "جابه‌جایی cursor و همگام‌سازی انتخابگر"
+      },
+      {
+        "path": "src/Calendar/MonthGridBuilder.php",
+        "purpose": "روزهای padding ابتدای/انتهای grid و weekend"
+      },
+      {
+        "path": "src/Calendar/WeekGridBuilder.php",
+        "purpose": "ردیف‌ها و ستون‌های یک هفته با آغاز هفته"
+      },
+      {
+        "path": "src/Calendar/DayGridBuilder.php",
+        "purpose": "بازه و time slots یک روز"
+      },
+      {
+        "path": "src/Calendar/ListRangeBuilder.php",
+        "purpose": "بازه List و page continuation"
+      },
+      {
+        "path": "src/Calendar/DateLabelFormatter.php",
+        "purpose": "نام ماه/روز و اعداد فارسی/انگلیسی"
+      },
+      {
+        "path": "src/Calendar/TimezoneConverter.php",
+        "purpose": "تبدیل local↔UTC با gap/fold policy"
+      },
+      {
+        "path": "src/Calendar/EventOverlapCalculator.php",
+        "purpose": "بررسی اشتراک بازه‌های half-open"
+      },
+      {
+        "path": "src/Calendar/EventLayoutEngine.php",
+        "purpose": "جایگذاری رویدادهای هم‌پوشان و چندروزه"
+      },
+      {
+        "path": "src/Data/CalendarDayData.php",
+        "purpose": "تاریخ، weekday، outsideMonth، today، events"
+      },
+      {
+        "path": "src/Data/MonthGridData.php",
+        "purpose": "rows/cursor/displayedMonth/requestRange"
+      },
+      {
+        "path": "src/Data/WeekGridData.php",
+        "purpose": "days/slots/allDay/layers"
+      },
+      {
+        "path": "src/Data/DayGridData.php",
+        "purpose": "timeSlots/overlaps/allDay"
+      },
+      {
+        "path": "src/Data/CalendarNavigationState.php",
+        "purpose": "view/cursor/system/year/month/timezone"
+      },
+      {
+        "path": "src/Data/CalendarRenderState.php",
+        "purpose": "رویدادها، فیلترها، loading/error/overflow"
+      },
+      {
+        "path": "src/Support/UrlStateSerializer.php",
+        "purpose": "URL query امن با year/month/view/filters و system"
+      },
+      {
+        "path": "src/Support/QuerySignature.php",
+        "purpose": "hash درخواست برای جلوگیری از نتیجه stale"
+      },
+      {
+        "path": "src/Support/SourceAggregator.php",
+        "purpose": "تلفیق نتایج چند منبع با stable sort و dedupe"
+      },
+      {
+        "path": "src/Support/CursorPaginationMerger.php",
+        "purpose": "ادغام صفحه‌بندی منابع بدون حذف/تکرار"
+      },
+      {
+        "path": "src/Support/CalendarFilterEngine.php",
+        "purpose": "اعمال فیلترهای allowlist و انتخاب گزینه‌های میزبان"
+      },
+      {
+        "path": "src/Support/CalendarSearch.php",
+        "purpose": "قواعد طول/escape و واگذاری به Provider"
+      },
+      {
+        "path": "src/Support/CalendarTranslations.php",
+        "purpose": "fallback locale و label در جهت درست"
+      },
+      {
+        "path": "src/Livewire/Concerns/HasNavigation.php",
+        "purpose": "previous/next/today/picker و query-string"
+      },
+      {
+        "path": "src/Livewire/Concerns/LoadsCalendarEvents.php",
+        "purpose": "بازخوانی امن ranges و source pages"
+      },
+      {
+        "path": "src/Livewire/Concerns/HasCalendarFilters.php",
+        "purpose": "source/category/status/custom و reset"
+      },
+      {
+        "path": "src/Livewire/Concerns/HasViewSwitcher.php",
+        "purpose": "چهار نما و تنظیم view پیش‌فرض"
+      },
+      {
+        "path": "src/Livewire/DayEventsDrawer.php",
+        "purpose": "نمایش همه رویدادهای روز با page واقعی"
+      },
+      {
+        "path": "resources/views/calendar/root.blade.php",
+        "purpose": "پوسته اصلی انتخاب نما و layout مستقل"
+      },
+      {
+        "path": "resources/views/calendar/toolbar.blade.php",
+        "purpose": "امروز/قبلی/بعدی/سیستم تقویم/فیلتر"
+      },
+      {
+        "path": "resources/views/calendar/month.blade.php",
+        "purpose": "شبکه کامل ماه با padding days"
+      },
+      {
+        "path": "resources/views/calendar/month-day.blade.php",
+        "purpose": "سلول، امروز، حداکثر کارت و +More"
+      },
+      {
+        "path": "resources/views/calendar/week.blade.php",
+        "purpose": "چیدمان هفته و time grid"
+      },
+      {
+        "path": "resources/views/calendar/day.blade.php",
+        "purpose": "چیدمان یک روز و رویدادهای تمام‌روز"
+      },
+      {
+        "path": "resources/views/calendar/list.blade.php",
+        "purpose": "لیست زمان‌بندی و Load more"
+      },
+      {
+        "path": "resources/views/calendar/event.blade.php",
+        "purpose": "کارت عمومی با source/event/occurrence key"
+      },
+      {
+        "path": "resources/views/calendar/event-popover.blade.php",
+        "purpose": "نمایش جزئیات سبک بدون HTML غیرمجاز"
+      },
+      {
+        "path": "resources/views/calendar/filters.blade.php",
+        "purpose": "فیلترهای عمومی با گزینه‌های مجاز"
+      },
+      {
+        "path": "resources/views/calendar/empty.blade.php",
+        "purpose": "حالت بدون رویداد و بدون مجوز مناسب"
+      },
+      {
+        "path": "resources/views/calendar/loading.blade.php",
+        "purpose": "loading/error/retry بدون شکست نما"
+      },
+      {
+        "path": "resources/views/calendar/day-events-drawer.blade.php",
+        "purpose": "همه رویدادهای روز و صفحه‌بندی"
+      },
+      {
+        "path": "resources/views/calendar/pagination.blade.php",
+        "purpose": "cursor و hasMore برای هر منبع"
+      },
+      {
+        "path": "resources/css/calendar.css",
+        "purpose": "استایل namespaced نهایی RTL/LTR و تم روشن/تاریک"
+      },
+      {
+        "path": "resources/js/calendar.js",
+        "purpose": "ورودی JS و اتصال Livewire/Alpine بدون بارگذاری تکراری"
+      },
+      {
+        "path": "resources/js/navigation.js",
+        "purpose": "هماهنگی client navigation و query state"
+      },
+      {
+        "path": "resources/js/calendar-resize-observer.js",
+        "purpose": "اندازه‌گیری responsive بدون تغییر خودکار view"
+      },
+      {
+        "path": "resources/js/a11y.js",
+        "purpose": "focus/keyboard/aria و prefers reduced motion"
+      },
+      {
+        "path": "public/dist/calendar.css",
+        "purpose": "CSS بیلد شده انتشار؛ با build تولید شود"
+      },
+      {
+        "path": "public/dist/calendar.js",
+        "purpose": "JS بیلد شده انتشار؛ با build تولید شود"
+      },
+      {
+        "path": "tests/Unit/GregorianCalendarEngineTest.php",
+        "purpose": "همه مرزها و کوتاه‌شدن روز میلادی"
+      },
+      {
+        "path": "tests/Unit/JalaliCalendarEngineTest.php",
+        "purpose": "نوروز/اسفند/کبیسه/آغاز هفته/مرز ماه"
+      },
+      {
+        "path": "tests/Unit/TimezoneConverterTest.php",
+        "purpose": "DST gaps/folds و no silent normalization"
+      },
+      {
+        "path": "tests/Feature/CalendarViewsTest.php",
+        "purpose": "چهار نما و selector و URLs"
+      },
+      {
+        "path": "tests/Feature/CalendarPaginationTest.php",
+        "purpose": "fetch بُرداری، multiple sources، cursor و count"
+      },
+      {
+        "path": "tests/Feature/CalendarFiltersTest.php",
+        "purpose": "فیلتر مجاز، reset و حالت خالی"
+      },
+      {
+        "path": "tests/Feature/CalendarOverrideViewsTest.php",
+        "purpose": "استفاده واقعی از View override در render"
+      }
+    ],
+    "3": [
+      {
+        "path": "src/Actions/CalendarActionValidator.php",
+        "purpose": "اعتبارسنجی payload و capabilities و target"
+      },
+      {
+        "path": "src/Actions/CalendarMutationCoordinator.php",
+        "purpose": "اجرا/بازخوانی نتیجه و refresh محدوده بعد از action"
+      },
+      {
+        "path": "src/Actions/CalendarConfirmationPolicy.php",
+        "purpose": "سیاست تأیید عمومی یا اختصاصی منبع"
+      },
+      {
+        "path": "src/Actions/CalendarOperationId.php",
+        "purpose": "اعتبارسنجی شناسه عملیات یکتا"
+      },
+      {
+        "path": "src/Actions/CalendarConflictResolver.php",
+        "purpose": "مدیریت بازخوانی پس از version conflict"
+      },
+      {
+        "path": "src/Actions/ActionResultPresenter.php",
+        "purpose": "ترجمه پیام‌ها، errors و status بدون success حدسی"
+      },
+      {
+        "path": "src/Contracts/CalendarFormResolver.php",
+        "purpose": "Resolve فرم استاندارد یا فرم ماژول"
+      },
+      {
+        "path": "src/Contracts/CalendarOperationHooks.php",
+        "purpose": "afterCommit hook اختیاری و بدون اعلان اجباری"
+      },
+      {
+        "path": "src/Data/CreateEventInput.php",
+        "purpose": "عنوان/شروع/پایان/مکان/دسته/تکرار و fields"
+      },
+      {
+        "path": "src/Data/UpdateEventInput.php",
+        "purpose": "رشته‌های تغییر و expectedVersion"
+      },
+      {
+        "path": "src/Data/MoveEventInput.php",
+        "purpose": "source/ref/from/to/mode/old wall clock"
+      },
+      {
+        "path": "src/Data/ResizeEventInput.php",
+        "purpose": "جدید کردن پایان رویداد و اعتبارسنجی duration"
+      },
+      {
+        "path": "src/Data/DeleteEventInput.php",
+        "purpose": "انتخاب حذف یک نوبت/آینده/کل سری"
+      },
+      {
+        "path": "src/Data/CalendarFormSchema.php",
+        "purpose": "field rules/type/label/options از میزبان"
+      },
+      {
+        "path": "src/Data/CalendarFormResult.php",
+        "purpose": "داده معتبر/خطا و input сохран‌شده"
+      },
+      {
+        "path": "src/Data/RecurrenceRuleData.php",
+        "purpose": "frequency/interval/calendarSystem/byWeekday/count/until"
+      },
+      {
+        "path": "src/Data/RecurrenceExceptionData.php",
+        "purpose": "originalOccurrenceKey + cancelled/replacement"
+      },
+      {
+        "path": "src/Data/RecurrenceSeriesData.php",
+        "purpose": "seriesId/timezone/start/end/rule/exceptions/version"
+      },
+      {
+        "path": "src/Data/OccurrenceData.php",
+        "purpose": "eventRef/start/end/originalStart/seriesVersion"
+      },
+      {
+        "path": "src/Enums/RecurrenceScope.php",
+        "purpose": "THIS/FUTURE/ALL"
+      },
+      {
+        "path": "src/Enums/RecurrenceFrequency.php",
+        "purpose": "DAILY/WEEKLY/MONTHLY/YEARLY"
+      },
+      {
+        "path": "src/Recurrence/RecurrenceExpander.php",
+        "purpose": "انتخاب engine جلالی/میلادی، bounded page"
+      },
+      {
+        "path": "src/Recurrence/GregorianRRuleAdapter.php",
+        "purpose": "تبدیل RRULE به Occurrence قابل تست"
+      },
+      {
+        "path": "src/Recurrence/JalaliRecurrenceExpander.php",
+        "purpose": "تکرار تقویم شمسی و قواعد ماه/اسفند"
+      },
+      {
+        "path": "src/Recurrence/RecurrenceExceptionApplier.php",
+        "purpose": "EXDATE/override و original occurrence key"
+      },
+      {
+        "path": "src/Recurrence/RecurrenceSeriesSplitter.php",
+        "purpose": "محاسبه قرارداد split آینده برای Handler میزبان"
+      },
+      {
+        "path": "src/Recurrence/RecurrenceLimitPolicy.php",
+        "purpose": "کنترل بازه/حد رخداد و رد انفجار محاسباتی"
+      },
+      {
+        "path": "src/Livewire/Concerns/HandlesCalendarActions.php",
+        "purpose": "event click/create/update/delete/resize/move"
+      },
+      {
+        "path": "src/Livewire/Concerns/HandlesCalendarForms.php",
+        "purpose": "بازکردن/بستن/ارسال فرم، errors محفوظ"
+      },
+      {
+        "path": "src/Livewire/Concerns/HandlesRecurrence.php",
+        "purpose": "this/future/all و انتخاب exception"
+      },
+      {
+        "path": "src/Livewire/EventDetailsDrawer.php",
+        "purpose": "جزئیات عمومی و actionهای capability"
+      },
+      {
+        "path": "src/Livewire/EventFormModal.php",
+        "purpose": "فرم عمومی create/update و validation"
+      },
+      {
+        "path": "src/Livewire/ConfirmActionModal.php",
+        "purpose": "تأیید/لغو انتقال یا حذف"
+      },
+      {
+        "path": "resources/views/calendar/event-details-drawer.blade.php",
+        "purpose": "جزئیات کامل Event و View override"
+      },
+      {
+        "path": "resources/views/calendar/event-form.blade.php",
+        "purpose": "فرم استاندارد با validation field errors"
+      },
+      {
+        "path": "resources/views/calendar/event-form-field.blade.php",
+        "purpose": "موتور fieldهای کنترل‌شده بدون HTML آزاد"
+      },
+      {
+        "path": "resources/views/calendar/confirm-action.blade.php",
+        "purpose": "دیالوگ تأیید با ورودی اضافی در صورت نیاز"
+      },
+      {
+        "path": "resources/views/calendar/recurrence-editor.blade.php",
+        "purpose": "تنظیم تکرار و دامنه ویرایش/حذف"
+      },
+      {
+        "path": "resources/views/calendar/drag-preview.blade.php",
+        "purpose": "preview/placeholder/rollback مناسب لمس"
+      },
+      {
+        "path": "resources/js/drag-controller.js",
+        "purpose": "Pointer Events برای mouse/touch با threshold"
+      },
+      {
+        "path": "resources/js/keyboard-move.js",
+        "purpose": "جایگزین keyboard Move و focus پایدار"
+      },
+      {
+        "path": "resources/js/resize-controller.js",
+        "purpose": "تغییر طول رویداد در week/day در صورت مجوز"
+      },
+      {
+        "path": "resources/js/action-bridge.js",
+        "purpose": "operationId و pending/confirm/rollback/server feedback"
+      },
+      {
+        "path": "resources/js/modal-focus.js",
+        "purpose": "focus trap/Escape/restore focus"
+      },
+      {
+        "path": "resources/js/recurrence-controller.js",
+        "purpose": "تعامل UI با انتخاب this/future/all"
+      },
+      {
+        "path": "src/Actions/NullCalendarOperationHooks.php",
+        "purpose": "Hook پیش‌فرض بی‌اثر بدون Side-effect"
+      },
+      {
+        "path": "src/Forms/DefaultCalendarFormResolver.php",
+        "purpose": "فرم عمومی بر اساس schema معتبر"
+      },
+      {
+        "path": "src/Forms/FormFieldSanitizer.php",
+        "purpose": "safe text/value/URL/enum field"
+      },
+      {
+        "path": "src/Forms/FormValidationMapper.php",
+        "purpose": "پیام validation دامنه به UI"
+      },
+      {
+        "path": "src/Support/TimeMovePolicy.php",
+        "purpose": "حفظ ساعت و مدت محلی با DST validation"
+      },
+      {
+        "path": "tests/Unit/RecurrenceGregorianTest.php",
+        "purpose": "RRULE و occurrence stable key و استثناء"
+      },
+      {
+        "path": "tests/Unit/RecurrenceJalaliTest.php",
+        "purpose": "monthly/yearly شمسی، اسفند/کبیسه"
+      },
+      {
+        "path": "tests/Unit/RecurrenceBoundedTest.php",
+        "purpose": "Rule نامحدود و ظرفیت query"
+      },
+      {
+        "path": "tests/Feature/EventOperationsTest.php",
+        "purpose": "CRUD، confirm/cancel، field errors"
+      },
+      {
+        "path": "tests/Feature/MoveAndResizeTest.php",
+        "purpose": "same-hour / local wall time / DST / forbidden"
+      },
+      {
+        "path": "tests/Feature/EventViewAndFormOverridesTest.php",
+        "purpose": "تست واقعی فرم و کارت اختصاصی"
+      }
+    ],
+    "4": [
+      {
+        "path": "src/Security/CalendarAuthorizationGuard.php",
+        "purpose": "مرجع کنترل view/read/write/action در سرور"
+      },
+      {
+        "path": "src/Security/ContextScopeGuard.php",
+        "purpose": "تطبیق محدوده resolved با source و calendar"
+      },
+      {
+        "path": "src/Security/EventReferenceGuard.php",
+        "purpose": "reference اعلامی را از Provider مجاز بازیابی کند"
+      },
+      {
+        "path": "src/Security/CalendarRateLimitGuard.php",
+        "purpose": "کنترل تکرار، payload size، range و صفحات"
+      },
+      {
+        "path": "src/Security/SafeCalendarMarkup.php",
+        "purpose": "escape و sanitize تمامی متن و linkهای رویداد"
+      },
+      {
+        "path": "src/Security/AllowedCssToken.php",
+        "purpose": "کلاس/رنگ whitelist در theme و event"
+      },
+      {
+        "path": "src/Security/CalendarInputNormalizer.php",
+        "purpose": "تبدیل امن ورودی تاریخ/فیلتر و invalid date"
+      },
+      {
+        "path": "src/Security/DefaultDenyPolicy.php",
+        "purpose": "مجوز پیش‌فرض رد مگر Handler معتبر"
+      },
+      {
+        "path": "src/Concurrency/ExpectedVersionGuard.php",
+        "purpose": "ارزیابی optimistic concurrency token توسط Handler"
+      },
+      {
+        "path": "src/Concurrency/OperationOutcomeResolver.php",
+        "purpose": "unknown/retry/dedupe و refetch درست"
+      },
+      {
+        "path": "src/Concurrency/ActionExecutionJournalContract.php",
+        "purpose": "قرارداد اختیاری idempotency store میزبان"
+      },
+      {
+        "path": "src/Concurrency/NullActionExecutionJournal.php",
+        "purpose": "عدم ادعای exactly-once در نبود Store"
+      },
+      {
+        "path": "src/Cache/CalendarCacheKey.php",
+        "purpose": "کلید کامل calendar/scope/actor/range/filters/version"
+      },
+      {
+        "path": "src/Cache/CalendarReadCache.php",
+        "purpose": "cache opt-in با invalidation صریح"
+      },
+      {
+        "path": "src/Cache/NullCalendarCache.php",
+        "purpose": "default خاموش و عدم خطر نشت"
+      },
+      {
+        "path": "src/Observability/CalendarTelemetry.php",
+        "purpose": "مدت، شمارش، خطا، بدون متن خصوصی"
+      },
+      {
+        "path": "src/Observability/NullCalendarTelemetry.php",
+        "purpose": "default بدون overhead"
+      },
+      {
+        "path": "src/Refresh/CalendarRefreshToken.php",
+        "purpose": "نسخه نمایش و invalidation scope معتبر"
+      },
+      {
+        "path": "src/Refresh/CalendarRefreshCoordinator.php",
+        "purpose": "پس از mutation یا reconnect refetch range"
+      },
+      {
+        "path": "src/Refresh/OptionalBroadcastBridge.php",
+        "purpose": "اختیاری؛ هیچ Reverb وابستگی سخت نیست"
+      },
+      {
+        "path": "src/Data/CalendarRefreshEventData.php",
+        "purpose": "calendar/source/scope/reference/version/occurredAt"
+      },
+      {
+        "path": "src/Support/CalendarLoadBudget.php",
+        "purpose": "سقف range، occurrence، event و query fanout"
+      },
+      {
+        "path": "src/Support/ResultWindowManager.php",
+        "purpose": "windowing نمایش List/Drawer بدون مخفی‌کردن داده"
+      },
+      {
+        "path": "resources/views/calendar/error.blade.php",
+        "purpose": "پیام امن خطا/Retry/Unknown outcome"
+      },
+      {
+        "path": "resources/views/calendar/conflict.blade.php",
+        "purpose": "درخواست تازه‌سازی، مقایسه و عدم overwrite"
+      },
+      {
+        "path": "resources/views/calendar/offline.blade.php",
+        "purpose": "وضعیت قطع اتصال/تلاش مجدد"
+      },
+      {
+        "path": "resources/js/network-state.js",
+        "purpose": "online/offline و بازخوانی بعد reconnect"
+      },
+      {
+        "path": "resources/js/refresh-controller.js",
+        "purpose": "ignore stale replies و refresh token"
+      },
+      {
+        "path": "resources/js/virtual-list.js",
+        "purpose": "windowing لیست با scroll window واقعی"
+      },
+      {
+        "path": "resources/js/telemetry-events.js",
+        "purpose": "signalهای بدون اطلاعات حساس و opt-in"
+      },
+      {
+        "path": "tests/Security/AnonymousAndTenantIsolationTest.php",
+        "purpose": "بدون user هیچ leak و tenant A/B مجزا"
+      },
+      {
+        "path": "tests/Security/ProviderAuthorizationTest.php",
+        "purpose": "find/action بدون scope و source جعلی رد شود"
+      },
+      {
+        "path": "tests/Security/MaliciousHtmlAndUrlsTest.php",
+        "purpose": "XSS، href، class injection"
+      },
+      {
+        "path": "tests/Feature/ConcurrencyAndIdempotencyTest.php",
+        "purpose": "stale version، duplicate operation، unknown result"
+      },
+      {
+        "path": "tests/Feature/OfflineRecoveryTest.php",
+        "purpose": "قطع/وصل، rollback و refetch"
+      },
+      {
+        "path": "tests/Performance/CalendarQueryBudgetTest.php",
+        "purpose": "بازه و query source limits"
+      },
+      {
+        "path": "tests/Performance/CalendarRecurrenceBudgetTest.php",
+        "purpose": "حد expansion Rule و timeouts"
+      },
+      {
+        "path": "tests/Performance/CalendarLargeDatasetTest.php",
+        "purpose": "۵۰۰۰ Event چندمنبعی و cursor واقعی"
+      }
+    ],
+    "5": [
+      {
+        "path": "README.md",
+        "purpose": "راهنمای سریع نصب و مثال عملی اتصال"
+      },
+      {
+        "path": "CHANGELOG.md",
+        "purpose": "تاریخچه نسخه‌بندی و breaking changes"
+      },
+      {
+        "path": "UPGRADE.md",
+        "purpose": "سازگاری و راهنمای ارتقا"
+      },
+      {
+        "path": "SECURITY.md",
+        "purpose": "گزارش آسیب‌پذیری و سیاست انتشار"
+      },
+      {
+        "path": "CONTRIBUTING.md",
+        "purpose": "قواعد Pull Request، lint و تست"
+      },
+      {
+        "path": "docs/PRD-CALENDAR-ENTERPRISE-v1.0-FA.md",
+        "purpose": "PRD نهایی شامل تصمیم‌های محصولی این سند"
+      },
+      {
+        "path": "docs/IMPLEMENTATION-STATUS.md",
+        "purpose": "وضعیت واقعی هر فایل، تست و مانع فازها"
+      },
+      {
+        "path": "docs/ARCHITECTURE.md",
+        "purpose": "diagram و چرخه request و قراردادها"
+      },
+      {
+        "path": "docs/ARCHITECTURE-DECISIONS.md",
+        "purpose": "دلیل انتخاب Calendar engine و استقلال داده"
+      },
+      {
+        "path": "docs/INSTALLATION.md",
+        "purpose": "نصب Laravel/Livewire، انتشار CSS/JS و upgrade"
+      },
+      {
+        "path": "docs/QUICKSTART.md",
+        "purpose": "اتصال نخستین تقویم شخصی در کمتر از یک مثال"
+      },
+      {
+        "path": "docs/API-REFERENCE.md",
+        "purpose": "همه signatureها، DTOها و ActionResultها"
+      },
+      {
+        "path": "docs/EVENT-PROVIDERS.md",
+        "purpose": "ساخت Provider read-only و read-write و pagination"
+      },
+      {
+        "path": "docs/ACTION-HANDLERS.md",
+        "purpose": "Policy, transactions, operations, failure modes"
+      },
+      {
+        "path": "docs/RECURRENCE.md",
+        "purpose": "تقویم‌های تکرار، استثناء، split و timezone"
+      },
+      {
+        "path": "docs/CALENDAR-SYSTEMS.md",
+        "purpose": "شمسی/میلادی، تبدیل، DST و edge cases"
+      },
+      {
+        "path": "docs/STYLING-AND-VIEWS.md",
+        "purpose": "Override واقعی و CSS مستقل"
+      },
+      {
+        "path": "docs/ACCESS-CONTROL.md",
+        "purpose": "scope, actor, guest, source authorization"
+      },
+      {
+        "path": "docs/PERFORMANCE.md",
+        "purpose": "indexها، provider queries، memory و benchmark"
+      },
+      {
+        "path": "docs/TESTING.md",
+        "purpose": "اجرای PHPUnit/Playwright/CI و no-skip policy"
+      },
+      {
+        "path": "docs/SCENARIOS.md",
+        "purpose": "فهرست همه سناریوهای آزمون و expected result"
+      },
+      {
+        "path": "docs/TROUBLESHOOTING.md",
+        "purpose": "خطاهای رایج در نصب، assets، timezone، touch"
+      },
+      {
+        "path": "docs/MIGRATION-FROM-HOST.md",
+        "purpose": "جایگزینی صفحه قدیم بدون schema change اجباری"
+      },
+      {
+        "path": "docs/EXAMPLES-PERSONAL-TASK.md",
+        "purpose": "مثال استفاده Task واقعی شخصی"
+      },
+      {
+        "path": "docs/EXAMPLES-CLASSES-SHIFTS.md",
+        "purpose": "مثال تقویم کلاس و شیفت مستقل"
+      },
+      {
+        "path": "docs/EXAMPLES-RESERVATIONS.md",
+        "purpose": "مثال رویداد رزرو فقط‌خواندنی"
+      },
+      {
+        "path": "docs/EXAMPLES-PUBLIC-READONLY.md",
+        "purpose": "نمونه تقویم public با فعال‌سازی صریح و امن"
+      },
+      {
+        "path": "docs/PRODUCTION-CHECKLIST.md",
+        "purpose": "checklist نسخه ۱ و تأیید مسئول فنی"
+      },
+      {
+        "path": "docs/RELEASE-PROCESS.md",
+        "purpose": "نسخه، tag، سازگاری و اسناد انتشار"
+      },
+      {
+        "path": "docs/KNOWN-LIMITATIONS.md",
+        "purpose": "محدودیت‌های خارج دامنه و رفتارهای موجه"
+      },
+      {
+        "path": "workbench/app/Providers/WorkbenchCalendarServiceProvider.php",
+        "purpose": "ثبت سه تقویم نمونه و ScopeResolver"
+      },
+      {
+        "path": "workbench/app/Calendars/PersonalCalendarFactory.php",
+        "purpose": "تعریف تقویم شخصی با Task source"
+      },
+      {
+        "path": "workbench/app/Calendars/OperationsCalendarFactory.php",
+        "purpose": "تقویم کلاس و شیفت چندمنبعی"
+      },
+      {
+        "path": "workbench/app/Calendars/PublicCalendarFactory.php",
+        "purpose": "تقویم read-only عمومی صرفاً برای مثال"
+      },
+      {
+        "path": "workbench/app/Calendar/SecureDemoScopeResolver.php",
+        "purpose": "هویت، Tenant و مجوز از Auth سرور"
+      },
+      {
+        "path": "workbench/app/Calendar/DemoTaskProvider.php",
+        "purpose": "خواندن امن تسک‌ها با Range و cursor"
+      },
+      {
+        "path": "workbench/app/Calendar/DemoClassProvider.php",
+        "purpose": "رویداد کلاس multi-day/read-only"
+      },
+      {
+        "path": "workbench/app/Calendar/DemoShiftProvider.php",
+        "purpose": "شیفت با Scope مستقل"
+      },
+      {
+        "path": "workbench/app/Calendar/DemoReservationProvider.php",
+        "purpose": "رزرو با capability read-only"
+      },
+      {
+        "path": "workbench/app/Calendar/DemoTaskHandler.php",
+        "purpose": "CRUD/move/recurrence نمونه در تراکنش و Policy"
+      },
+      {
+        "path": "workbench/app/Calendar/DemoOperationJournal.php",
+        "purpose": "ذخیره dedupe idempotency در db Workbench"
+      },
+      {
+        "path": "workbench/app/Models/DemoTask.php",
+        "purpose": "مدل فقط Workbench، ممنوع داخل src"
+      },
+      {
+        "path": "workbench/app/Models/DemoRecurringSeries.php",
+        "purpose": "مدل نمونه recurrence و exceptions Workbench"
+      },
+      {
+        "path": "workbench/app/Policies/DemoTaskPolicy.php",
+        "purpose": "آزمون واقعی authorization"
+      },
+      {
+        "path": "workbench/database/migrations/create_demo_tasks_table.php",
+        "purpose": "Migration صرفاً Workbench برای تست"
+      },
+      {
+        "path": "workbench/database/migrations/create_demo_recurring_series_table.php",
+        "purpose": "جدول recurring و exceptions صرفاً Workbench"
+      },
+      {
+        "path": "workbench/database/migrations/create_demo_action_journal_table.php",
+        "purpose": "جدول idempotency نمونه صرفاً Workbench"
+      },
+      {
+        "path": "workbench/database/factories/DemoTaskFactory.php",
+        "purpose": "داده‌های سناریویی شناخته‌شده"
+      },
+      {
+        "path": "workbench/database/seeders/CalendarDemoSeeder.php",
+        "purpose": "سناریوهای داده شخصی/دو Tenant/recurrence"
+      },
+      {
+        "path": "workbench/resources/views/calendar/personal.blade.php",
+        "purpose": "صفحه نمونه مصرف‌کننده"
+      },
+      {
+        "path": "workbench/resources/views/calendar/operations.blade.php",
+        "purpose": "صفحه نمونه چندمنبعی"
+      },
+      {
+        "path": "workbench/resources/views/calendar/custom-card.blade.php",
+        "purpose": "ثبات کارکرد View override"
+      },
+      {
+        "path": "workbench/routes/web.php",
+        "purpose": "مسیرهای نمونه Auth و public read-only"
+      },
+      {
+        "path": "tests/Browser/calendar.spec.js",
+        "purpose": "مسیر ورود و نمایش چهار نما"
+      },
+      {
+        "path": "tests/Browser/drag-touch.spec.js",
+        "purpose": "Drag با pointer/touch واقعی و keyboard"
+      },
+      {
+        "path": "tests/Browser/recurrence.spec.js",
+        "purpose": "دیالوگ recurrence و نتیجه هر محدوده"
+      },
+      {
+        "path": "tests/Browser/calendar-rtl.spec.js",
+        "purpose": "RTL/LTR، font rendering و overflow"
+      },
+      {
+        "path": "tests/Browser/calendar-filters.spec.js",
+        "purpose": "جست‌وجو، چندمنبعی، query URL و load more"
+      },
+      {
+        "path": "tests/Browser/calendar-security.spec.js",
+        "purpose": "UI روی event مجاز/غیرمجاز، read-only"
+      },
+      {
+        "path": "tests/Browser/calendar-reconnect.spec.js",
+        "purpose": "network interruption و unknown/conflict"
+      },
+      {
+        "path": "tests/Integration/HostCalendarMigrationTest.php",
+        "purpose": "مسیر/URL/رفتار تسک قدیم با آداپتر جدید"
+      },
+      {
+        "path": "tests/Integration/MultipleProvidersTest.php",
+        "purpose": "برخورد Event ID و استقلال Scope"
+      },
+      {
+        "path": "tests/Integration/ViewAssetAndInstallTest.php",
+        "purpose": "بارگذاری دارایی‌ها روی پروژه نصب‌شده"
+      },
+      {
+        "path": "tests/Integration/HostRecurrenceMutationTest.php",
+        "purpose": "استثنا و split واقعی در DB Workbench"
+      },
+      {
+        "path": "tests/Integration/CalendarComponentLifecycleTest.php",
+        "purpose": "Livewire request دوباره، چند instance و no state leak"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "purpose": "ماتریس PHP/Laravel و test suites معتبر"
+      },
+      {
+        "path": ".github/workflows/release.yml",
+        "purpose": "بررسی Tag و انتشار نسخه فقط پس از CI"
+      },
+      {
+        "path": "playwright.config.mjs",
+        "purpose": "تنظیم مرورگرها/موبایل/زبان‌ها"
+      },
+      {
+        "path": "docs/RELEASE-REPORT-v1.0.md",
+        "purpose": "شواهد تست، ریسک و نسخه تولید شده"
+      }
+    ]
+  },
+  "scenario_count": 56,
+  "scenario_files": [
+    {
+      "id": "01",
+      "slug": "BasicCalendarBoot",
+      "test": "tests/Scenarios/Scenario01BasicCalendarBootTest.php",
+      "document": "tests/Scenarios/Scenario01_BasicCalendarBoot.md",
+      "expected": "تقویم شناخته‌شده با Factory معتبر رندر می‌شود؛ کلید نامعلوم هیچ رویدادی نشان نمی‌دهد"
+    },
+    {
+      "id": "02",
+      "slug": "AnonymousReadDenied",
+      "test": "tests/Scenarios/Scenario02AnonymousReadDeniedTest.php",
+      "document": "tests/Scenarios/Scenario02_AnonymousReadDenied.md",
+      "expected": "بدون user و مجوز public، fetch صفر و دسترسی رد می‌شود"
+    },
+    {
+      "id": "03",
+      "slug": "TwoCalendarIsolation",
+      "test": "tests/Scenarios/Scenario03TwoCalendarIsolationTest.php",
+      "document": "tests/Scenarios/Scenario03_TwoCalendarIsolation.md",
+      "expected": "switch instance باعث مخلوط‌شدن state و sources نمی‌شود"
+    },
+    {
+      "id": "04",
+      "slug": "SourcesCollision",
+      "test": "tests/Scenarios/Scenario04SourcesCollisionTest.php",
+      "document": "tests/Scenarios/Scenario04_SourcesCollision.md",
+      "expected": "task:1 و shift:1 دو رویداد مستقل می‌مانند"
+    },
+    {
+      "id": "05",
+      "slug": "JalaliNowruz",
+      "test": "tests/Scenarios/Scenario05JalaliNowruzTest.php",
+      "document": "tests/Scenarios/Scenario05_JalaliNowruz.md",
+      "expected": "آخر اسفند و اول فروردین در grid و URL درست هستند"
+    },
+    {
+      "id": "06",
+      "slug": "JalaliLeapYear",
+      "test": "tests/Scenarios/Scenario06JalaliLeapYearTest.php",
+      "document": "tests/Scenarios/Scenario06_JalaliLeapYear.md",
+      "expected": "۲۹/۳۰ اسفند مطابق سال معتبر، بدون تاریخ خیالی"
+    },
+    {
+      "id": "07",
+      "slug": "GregorianLeapYear",
+      "test": "tests/Scenarios/Scenario07GregorianLeapYearTest.php",
+      "document": "tests/Scenarios/Scenario07_GregorianLeapYear.md",
+      "expected": "۲۹ فوریه کبیسه و clamp روز ۳۱ درست است"
+    },
+    {
+      "id": "08",
+      "slug": "WeekStarts",
+      "test": "tests/Scenarios/Scenario08WeekStartsTest.php",
+      "document": "tests/Scenarios/Scenario08_WeekStarts.md",
+      "expected": "شمسی شنبه، میلادی یکشنبه، override معتبر"
+    },
+    {
+      "id": "09",
+      "slug": "MonthNavigation",
+      "test": "tests/Scenarios/Scenario09MonthNavigationTest.php",
+      "document": "tests/Scenarios/Scenario09_MonthNavigation.md",
+      "expected": "prev/next/today و cursor پس از مرز ماه هماهنگ است"
+    },
+    {
+      "id": "10",
+      "slug": "WeekDayNavigation",
+      "test": "tests/Scenarios/Scenario10WeekDayNavigationTest.php",
+      "document": "tests/Scenarios/Scenario10_WeekDayNavigation.md",
+      "expected": "جابه‌جایی به اندازه دقیق واحد نما و URL صحیح"
+    },
+    {
+      "id": "11",
+      "slug": "CalendarSystemToggle",
+      "test": "tests/Scenarios/Scenario11CalendarSystemToggleTest.php",
+      "document": "tests/Scenarios/Scenario11_CalendarSystemToggle.md",
+      "expected": "لحظه واقعی ثابت و برچسب/URL تبدیل می‌شود"
+    },
+    {
+      "id": "12",
+      "slug": "BrowserUrlState",
+      "test": "tests/Scenarios/Scenario12BrowserUrlStateTest.php",
+      "document": "tests/Scenarios/Scenario12_BrowserUrlState.md",
+      "expected": "view/year/month/filters پس از browser history دقیق بازسازی می‌شود"
+    },
+    {
+      "id": "13",
+      "slug": "MonthThreeMore",
+      "test": "tests/Scenarios/Scenario13MonthThreeMoreTest.php",
+      "document": "tests/Scenarios/Scenario13_MonthThreeMore.md",
+      "expected": "فقط سه رویداد در سلول؛ drawer تمام مجازها را دریافت می‌کند"
+    },
+    {
+      "id": "14",
+      "slug": "OutsideMonthEvents",
+      "test": "tests/Scenarios/Scenario14OutsideMonthEventsTest.php",
+      "document": "tests/Scenarios/Scenario14_OutsideMonthEvents.md",
+      "expected": "در padded grid رویدادهای مرزی نمایش می‌یابند"
+    },
+    {
+      "id": "15",
+      "slug": "FourViews",
+      "test": "tests/Scenarios/Scenario15FourViewsTest.php",
+      "document": "tests/Scenarios/Scenario15_FourViews.md",
+      "expected": "ماه، هفته، روز، لیست بدون داده ناپدیدشده باز می‌شوند"
+    },
+    {
+      "id": "16",
+      "slug": "MultipleSources",
+      "test": "tests/Scenarios/Scenario16MultipleSourcesTest.php",
+      "document": "tests/Scenarios/Scenario16_MultipleSources.md",
+      "expected": "Task/Shift/Class در یک بازه با نمایش درست source"
+    },
+    {
+      "id": "17",
+      "slug": "SourceFilters",
+      "test": "tests/Scenarios/Scenario17SourceFiltersTest.php",
+      "document": "tests/Scenarios/Scenario17_SourceFilters.md",
+      "expected": "غیرفعال‌شدن منبع فقط رویدادهای آن منبع را پنهان می‌کند"
+    },
+    {
+      "id": "18",
+      "slug": "StatusAndSearch",
+      "test": "tests/Scenarios/Scenario18StatusAndSearchTest.php",
+      "document": "tests/Scenarios/Scenario18_StatusAndSearch.md",
+      "expected": "نتیجه تنها از Provider مجاز و با query validated است"
+    },
+    {
+      "id": "19",
+      "slug": "NoFilterRule",
+      "test": "tests/Scenarios/Scenario19NoFilterRuleTest.php",
+      "document": "tests/Scenarios/Scenario19_NoFilterRule.md",
+      "expected": "در تقویم شخصی آخرین منبع خاموش نمی‌شود"
+    },
+    {
+      "id": "20",
+      "slug": "PaginationNoLoss",
+      "test": "tests/Scenarios/Scenario20PaginationNoLossTest.php",
+      "document": "tests/Scenarios/Scenario20_PaginationNoLoss.md",
+      "expected": "۵۰۰۰ رکورد داده گم‌شده/تکراری در Load more ندارند"
+    },
+    {
+      "id": "21",
+      "slug": "DateRangeOverlap",
+      "test": "tests/Scenarios/Scenario21DateRangeOverlapTest.php",
+      "document": "tests/Scenarios/Scenario21_DateRangeOverlap.md",
+      "expected": "رویدادهای عبوری از مرز ماه در هر دو بازه صحیح‌اند"
+    },
+    {
+      "id": "22",
+      "slug": "AllDayExclusiveEnd",
+      "test": "tests/Scenarios/Scenario22AllDayExclusiveEndTest.php",
+      "document": "tests/Scenarios/Scenario22_AllDayExclusiveEnd.md",
+      "expected": "۱ روز نمایش داده می‌شود و روز بعد اضافه نیست"
+    },
+    {
+      "id": "23",
+      "slug": "MultiDayEvent",
+      "test": "tests/Scenarios/Scenario23MultiDayEventTest.php",
+      "document": "tests/Scenarios/Scenario23_MultiDayEvent.md",
+      "expected": "بخش‌های spanning در grid بدون تکرار منطقی نشان داده شوند"
+    },
+    {
+      "id": "24",
+      "slug": "TimezoneConversion",
+      "test": "tests/Scenarios/Scenario24TimezoneConversionTest.php",
+      "document": "tests/Scenarios/Scenario24_TimezoneConversion.md",
+      "expected": "زمان منبع UTC به timezone نمایش صحیح تبدیل شود"
+    },
+    {
+      "id": "25",
+      "slug": "DstGapRejected",
+      "test": "tests/Scenarios/Scenario25DstGapRejectedTest.php",
+      "document": "tests/Scenarios/Scenario25_DstGapRejected.md",
+      "expected": "ثبت ساعت local ناموجود با پیام validation رد می‌شود"
+    },
+    {
+      "id": "26",
+      "slug": "DstFoldExplicit",
+      "test": "tests/Scenarios/Scenario26DstFoldExplicitTest.php",
+      "document": "tests/Scenarios/Scenario26_DstFoldExplicit.md",
+      "expected": "بدون offset صریح رد/انتخاب مشخص می‌شود"
+    },
+    {
+      "id": "27",
+      "slug": "CreateEvent",
+      "test": "tests/Scenarios/Scenario27CreateEventTest.php",
+      "document": "tests/Scenarios/Scenario27_CreateEvent.md",
+      "expected": "Handler یکبار فراخوانی، موفقیت بعد commit، event تازه دیده می‌شود"
+    },
+    {
+      "id": "28",
+      "slug": "UpdateEvent",
+      "test": "tests/Scenarios/Scenario28UpdateEventTest.php",
+      "document": "tests/Scenarios/Scenario28_UpdateEvent.md",
+      "expected": "نسخه معتبر update شود و نسخه stale رد شود"
+    },
+    {
+      "id": "29",
+      "slug": "DeleteEvent",
+      "test": "tests/Scenarios/Scenario29DeleteEventTest.php",
+      "document": "tests/Scenarios/Scenario29_DeleteEvent.md",
+      "expected": "مجاز حذف، غیرمجاز و لغو بدون تغییر دیتابیس"
+    },
+    {
+      "id": "30",
+      "slug": "MoveDateKeepsClock",
+      "test": "tests/Scenarios/Scenario30MoveDateKeepsClockTest.php",
+      "document": "tests/Scenarios/Scenario30_MoveDateKeepsClock.md",
+      "expected": "ساعت محلی قبلی حفظ و فقط روز عوض می‌شود"
+    },
+    {
+      "id": "31",
+      "slug": "MoveTimeSlot",
+      "test": "tests/Scenarios/Scenario31MoveTimeSlotTest.php",
+      "document": "tests/Scenarios/Scenario31_MoveTimeSlot.md",
+      "expected": "time-slot جدید و مدت معتبر ثبت می‌شود"
+    },
+    {
+      "id": "32",
+      "slug": "ResizeEvent",
+      "test": "tests/Scenarios/Scenario32ResizeEventTest.php",
+      "document": "tests/Scenarios/Scenario32_ResizeEvent.md",
+      "expected": "پایان بعد از شروع و permission enforced"
+    },
+    {
+      "id": "33",
+      "slug": "CancelConfirmation",
+      "test": "tests/Scenarios/Scenario33CancelConfirmationTest.php",
+      "document": "tests/Scenarios/Scenario33_CancelConfirmation.md",
+      "expected": "Handler صفر بار اجرا و UI به حالت معتبر باز می‌گردد"
+    },
+    {
+      "id": "34",
+      "slug": "ReadOnlyProvider",
+      "test": "tests/Scenarios/Scenario34ReadOnlyProviderTest.php",
+      "document": "tests/Scenarios/Scenario34_ReadOnlyProvider.md",
+      "expected": "click مجاز اما create/edit/delete/move از سرور رد"
+    },
+    {
+      "id": "35",
+      "slug": "TouchDrag",
+      "test": "tests/Scenarios/Scenario35TouchDragTest.php",
+      "document": "tests/Scenarios/Scenario35_TouchDrag.md",
+      "expected": "انتقال لمس با نتیجه یکسان و بدون scroll hijack"
+    },
+    {
+      "id": "36",
+      "slug": "KeyboardMove",
+      "test": "tests/Scenarios/Scenario36KeyboardMoveTest.php",
+      "document": "tests/Scenarios/Scenario36_KeyboardMove.md",
+      "expected": "فوکوس و screen reader و عملیات قابل استفاده"
+    },
+    {
+      "id": "37",
+      "slug": "RecurringGregorian",
+      "test": "tests/Scenarios/Scenario37RecurringGregorianTest.php",
+      "document": "tests/Scenarios/Scenario37_RecurringGregorian.md",
+      "expected": "هفتگی/ماهانه، count/until و ۵ occurrence دقیق"
+    },
+    {
+      "id": "38",
+      "slug": "RecurringJalali",
+      "test": "tests/Scenarios/Scenario38RecurringJalaliTest.php",
+      "document": "tests/Scenarios/Scenario38_RecurringJalali.md",
+      "expected": "مثلاً روز ۳۰ ماه شمسی با قوانین پایان ماه درست"
+    },
+    {
+      "id": "39",
+      "slug": "OccurrenceOverride",
+      "test": "tests/Scenarios/Scenario39OccurrenceOverrideTest.php",
+      "document": "tests/Scenarios/Scenario39_OccurrenceOverride.md",
+      "expected": "سری اصلی ثابت، همان occurrence جایگزین می‌شود"
+    },
+    {
+      "id": "40",
+      "slug": "OccurrenceCancel",
+      "test": "tests/Scenarios/Scenario40OccurrenceCancelTest.php",
+      "document": "tests/Scenarios/Scenario40_OccurrenceCancel.md",
+      "expected": "استثناء حذف در expanded results اعمال می‌شود"
+    },
+    {
+      "id": "41",
+      "slug": "RecurringFutureSplit",
+      "test": "tests/Scenarios/Scenario41RecurringFutureSplitTest.php",
+      "document": "tests/Scenarios/Scenario41_RecurringFutureSplit.md",
+      "expected": "سری جدید ساخته، قبل از split دست‌نخورده می‌ماند"
+    },
+    {
+      "id": "42",
+      "slug": "RecurringAllEdit",
+      "test": "tests/Scenarios/Scenario42RecurringAllEditTest.php",
+      "document": "tests/Scenarios/Scenario42_RecurringAllEdit.md",
+      "expected": "تمام occurrenceهای مجاز بعد از تغییر بازسازی می‌شوند"
+    },
+    {
+      "id": "43",
+      "slug": "RecurrenceBounded",
+      "test": "tests/Scenarios/Scenario43RecurrenceBoundedTest.php",
+      "document": "tests/Scenarios/Scenario43_RecurrenceBounded.md",
+      "expected": "query سقف دارد و loop/response بی‌حد ندارد"
+    },
+    {
+      "id": "44",
+      "slug": "CrossUserAccess",
+      "test": "tests/Scenarios/Scenario44CrossUserAccessTest.php",
+      "document": "tests/Scenarios/Scenario44_CrossUserAccess.md",
+      "expected": "کاربر B نمی‌تواند Task کاربر A را read/find/update کند"
+    },
+    {
+      "id": "45",
+      "slug": "CrossTenantAccess",
+      "test": "tests/Scenarios/Scenario45CrossTenantAccessTest.php",
+      "document": "tests/Scenarios/Scenario45_CrossTenantAccess.md",
+      "expected": "Tenant B حتی با ID صحیح Tenant A اطلاعات نمی‌گیرد"
+    },
+    {
+      "id": "46",
+      "slug": "ForgedSource",
+      "test": "tests/Scenarios/Scenario46ForgedSourceTest.php",
+      "document": "tests/Scenarios/Scenario46_ForgedSource.md",
+      "expected": "source key / event ID جعلی fail-closed"
+    },
+    {
+      "id": "47",
+      "slug": "HtmlSafety",
+      "test": "tests/Scenarios/Scenario47HtmlSafetyTest.php",
+      "document": "tests/Scenarios/Scenario47_HtmlSafety.md",
+      "expected": "Script و javascript URL در UI اجرا نمی‌شوند"
+    },
+    {
+      "id": "48",
+      "slug": "DuplicateOperation",
+      "test": "tests/Scenarios/Scenario48DuplicateOperationTest.php",
+      "document": "tests/Scenarios/Scenario48_DuplicateOperation.md",
+      "expected": "یک operationId نتیجه یک اثر ثبت‌شده می‌دهد در میزبان دارای Journal"
+    },
+    {
+      "id": "49",
+      "slug": "UnknownOutcome",
+      "test": "tests/Scenarios/Scenario49UnknownOutcomeTest.php",
+      "document": "tests/Scenarios/Scenario49_UnknownOutcome.md",
+      "expected": "UI موفقیت حدسی نمی‌دهد و refetch معتبر می‌کند"
+    },
+    {
+      "id": "50",
+      "slug": "ConcurrentVersion",
+      "test": "tests/Scenarios/Scenario50ConcurrentVersionTest.php",
+      "document": "tests/Scenarios/Scenario50_ConcurrentVersion.md",
+      "expected": "دومی conflict می‌گیرد؛ تغییر اول overwrite نمی‌شود"
+    },
+    {
+      "id": "51",
+      "slug": "OfflineRecovery",
+      "test": "tests/Scenarios/Scenario51OfflineRecoveryTest.php",
+      "document": "tests/Scenarios/Scenario51_OfflineRecovery.md",
+      "expected": "state stale پاک و اطلاعات تازه بازخوانی شود"
+    },
+    {
+      "id": "52",
+      "slug": "HostTaskCompatibility",
+      "test": "tests/Scenarios/Scenario52HostTaskCompatibilityTest.php",
+      "document": "tests/Scenarios/Scenario52_HostTaskCompatibility.md",
+      "expected": "route، جدول، status pending، ساعت و خواندن owner حفظ شوند"
+    },
+    {
+      "id": "53",
+      "slug": "HostModulePolicy",
+      "test": "tests/Scenarios/Scenario53HostModulePolicyTest.php",
+      "document": "tests/Scenarios/Scenario53_HostModulePolicy.md",
+      "expected": "در host، هر دو طبق policy تأییدشده منعکس شوند"
+    },
+    {
+      "id": "54",
+      "slug": "ViewOverrideAndThemes",
+      "test": "tests/Scenarios/Scenario54ViewOverrideAndThemesTest.php",
+      "document": "tests/Scenarios/Scenario54_ViewOverrideAndThemes.md",
+      "expected": "View و CSS انتخابی واقعاً رندر و تم روشن/تاریک قابل خواندن"
+    },
+    {
+      "id": "55",
+      "slug": "NoDuplicateAlpine",
+      "test": "tests/Scenarios/Scenario55NoDuplicateAlpineTest.php",
+      "document": "tests/Scenarios/Scenario55_NoDuplicateAlpine.md",
+      "expected": "ده navigation بدون دو listener، خطای JS و drag دوبل"
+    },
+    {
+      "id": "56",
+      "slug": "NoDomainMigration",
+      "test": "tests/Scenarios/Scenario56NoDomainMigrationTest.php",
+      "document": "tests/Scenarios/Scenario56_NoDomainMigration.md",
+      "expected": "نصب ساده هیچ جدول تجاری و مدل Task نمی‌سازد"
+    }
+  ]
+}

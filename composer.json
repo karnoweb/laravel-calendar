@@ -1,0 +1,59 @@
+{
+    "name": "karnoweb/laravel-calendar",
+    "description": "Reusable calendar engine and Livewire UI for Laravel with Jalali/Gregorian support",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "livewire", "calendar", "jalali", "persian", "recurrence"],
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^13.0",
+        "illuminate/contracts": "^13.0",
+        "livewire/livewire": "^4.0",
+        "nesbot/carbon": "^3.0",
+        "morilog/jalali": "^3.5",
+        "rlanvin/php-rrule": "^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^11.0",
+        "phpunit/phpunit": "^12.0",
+        "laravel/pint": "^1.0",
+        "larastan/larastan": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Karnoweb\\Calendar\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Karnoweb\\Calendar\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "lint": "vendor/bin/pint --test",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=1G"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Karnoweb\\Calendar\\CalendarServiceProvider"
+            ],
+            "aliases": {
+                "Calendar": "Karnoweb\\Calendar\\Facades\\Calendar"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

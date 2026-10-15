@@ -1,0 +1,14 @@
+{
+    "name": "@karnoweb/laravel-calendar",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "test:browser": "playwright test --config=playwright.config.mjs"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.49.0",
+        "esbuild": "^0.25.0"
+    }
+}

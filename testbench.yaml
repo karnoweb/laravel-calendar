@@ -1,0 +1,30 @@
+providers:
+  - Livewire\LivewireServiceProvider
+  - Karnoweb\Calendar\CalendarServiceProvider
+  - Workbench\App\Providers\WorkbenchCalendarServiceProvider
+
+migrations:
+  - workbench/database/migrations
+
+seeders:
+  - Workbench\Database\Seeders\CalendarDemoSeeder
+
+env:
+  APP_KEY: "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  APP_ENV: local
+  APP_DEBUG: "true"
+  APP_TIMEZONE: Asia/Tehran
+  SESSION_DRIVER: file
+  CACHE_STORE: file
+  QUEUE_CONNECTION: sync
+  DB_CONNECTION: sqlite
+  DB_DATABASE: "D:/my-packages/laravel-calendar/workbench/database/demo.sqlite"
+
+workbench:
+  start: /calendar/personal
+  install: false
+  discovers:
+    web: false
+    api: false
+    commands: false
+    views: false
