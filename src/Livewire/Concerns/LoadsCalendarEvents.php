@@ -138,6 +138,9 @@ trait LoadsCalendarEvents
         $model['digits'] = fn (string|int $v) => $labels->digits($v, $locale);
         $model['dayLabel'] = fn (string $iso) => $labels->dayTitle($system, $iso, $locale);
         $model['weekendDays'] = $system->weekendDays();
+        $altSystem = app(\Karnoweb\Calendar\Calendar\CalendarSystemRegistry::class)->get($state->system === \Karnoweb\Calendar\Enums\CalendarSystem::Jalali ? \Karnoweb\Calendar\Enums\CalendarSystem::Gregorian : \Karnoweb\Calendar\Enums\CalendarSystem::Jalali);
+        $altFa = $locale === 'fa' && $altSystem->system() === \Karnoweb\Calendar\Enums\CalendarSystem::Jalali;
+        $model['altDay'] = fn (string $iso) => $altFa ? $labels->digits($altSystem->fromIso($iso)[2], $locale) : (string) $altSystem->fromIso($iso)[2];
 
         $firstWeekday = $engine->firstWeekday($state, $settings);
         $model['weekdayOrder'] = array_map(fn (int $i) => ($firstWeekday + $i) % 7, range(0, 6));

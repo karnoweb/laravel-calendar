@@ -9,7 +9,7 @@
         @media (prefers-color-scheme:dark){html,body{background:#202124}}
         /* a full page: the calendar fills exactly what is left, the page itself never scrolls */
         .app{height:100dvh;display:flex;flex-direction:column}
-        .app__bar{flex:none;padding:8px 16px;font:14px system-ui;border-bottom:1px solid #dadce0}
+        .app__bar{flex:none;padding:8px 16px;font:14px system-ui;border-bottom:1px solid #1e293b;background:#0b0f19}.app__bar a{color:#93c5fd}
         .app__main{flex:1 1 auto;min-height:0}
     </style>@livewireStyles
 </head>

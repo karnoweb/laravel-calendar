@@ -12,7 +12,7 @@ final class AllowedCssToken
 {
     public const NAMED = ['gray', 'red', 'orange', 'amber', 'green', 'teal', 'blue', 'indigo', 'purple', 'pink'];
 
-    public const THEMES = ['light', 'dark', 'auto'];
+    public const THEMES = ['light', 'dark', 'auto', 'luxe'];
 
     public const DIRECTIONS = ['rtl', 'ltr', 'auto'];
 

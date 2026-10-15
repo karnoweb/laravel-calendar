@@ -24,7 +24,7 @@ final class PersonalCalendarFactory implements CalendarFactory
             ->holidays()
             ->actions(DemoTaskHandler::class)
             ->filters([new CalendarFilterData('tasks', 'status', 'Status', ['open' => 'Open', 'done' => 'Done', 'locked' => 'Locked'])])
-            ->settings(new CalendarSettings)
+            ->settings(new CalendarSettings(styles: ['theme' => 'luxe']))
             ->build();
     }
 }

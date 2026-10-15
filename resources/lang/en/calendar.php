@@ -135,6 +135,7 @@ return [
         'unknown_title' => 'Outcome unknown',
         'unknown_body' => 'We could not confirm whether the change was saved. The calendar reloaded; verify before trying again.',
         'more' => '+:count more',
+        'holiday' => 'Holiday',
         'load_more' => 'Load more',
         'truncated' => 'Only part of the events is shown. Narrow the range or load more.',
         'day_events' => 'Events on :date',
