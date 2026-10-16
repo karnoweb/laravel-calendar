@@ -14,7 +14,7 @@ function parse(list) {
 function render(list) {
     const host = list.querySelector('[data-kw-rowhost]');
     if (!host) return;
-    const rowHeight = Number(list.dataset.rowHeight) || 56;
+    const rowHeight = Number(list.dataset.rowHeight) || 64;
     const raw = list.dataset.rows || '[]';
     if (list.__kwRaw !== raw || !list.__kwRows) {
         list.__kwRaw = raw;
@@ -27,28 +27,41 @@ function render(list) {
     for (let i = start; i < end; i++) {
         const row = rows[i];
         const el = document.createElement('div');
-        el.style.top = `${i * rowHeight}px`;
-        el.style.height = `${rowHeight}px`;
         el.setAttribute('role', 'listitem');
         if (row.t === 'day') {
-            el.className = 'kw-list__row kw-list__row--day';
+            el.style.top = `${i * rowHeight}px`;
+            el.style.height = `${rowHeight}px`;
+            el.className = 'kw-list__row kw-list__row--day list-row';
+            el.dataset.kwPart = 'list-day-row';
             el.textContent = row.label; // textContent: titles are never interpreted as HTML
         } else {
-            el.className = `kw-list__row kw-list__row--event ${row.color || ''}`;
+            const gap = 8;
+            el.style.top = `${i * rowHeight + gap / 2}px`;
+            el.style.height = `${rowHeight - gap}px`;
+            el.className = `kw-list__row kw-list__row--event card card-border list-row ${row.color || ''}`;
             if (row.style) el.setAttribute('style', el.getAttribute('style') + ';' + row.style);
             el.tabIndex = 0;
             el.dataset.ref = row.ref;
+            el.dataset.kwPart = 'list-event-row';
+            el.dataset.kwAction = 'open-event';
             const time = document.createElement('span');
             time.className = 'kw-list__time';
+            time.dataset.kwPart = 'list-event-time';
             time.textContent = row.time;
+            const main = document.createElement('span');
+            main.className = 'kw-list__main';
+            main.dataset.kwPart = 'list-event-main';
             const title = document.createElement('span');
             title.className = 'kw-list__title';
+            title.dataset.kwPart = 'list-event-title';
             title.dir = 'auto';
             title.textContent = row.title;
             const source = document.createElement('span');
-            source.className = 'kw-list__source';
+            source.className = 'kw-list__source badge badge-sm badge-soft';
+            source.dataset.kwPart = 'list-event-source';
             source.textContent = row.source;
-            el.append(time, title, source);
+            main.append(title, source);
+            el.append(time, main);
         }
         frag.appendChild(el);
     }

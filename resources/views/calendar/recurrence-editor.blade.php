@@ -54,7 +54,12 @@
         @elseif ($endMode === 'until')
             <div class="kw-field @if (! empty($formErrors['recurrenceUntil'])) has-error @endif">
                 <label class="kw-field__label" for="kw-f-recurrenceUntil">{{ $t('recurrence.until_label') }}</label>
-                <input id="kw-f-recurrenceUntil" class="kw-input kw-input--mono" dir="ltr" inputmode="numeric" placeholder="YYYY/MM/DD" wire:model="form.recurrenceUntil">
+                <div class="kw-input-picker" data-kw-picker-wrap data-kw-part="picker-wrap">
+                    <input id="kw-f-recurrenceUntil" class="kw-input kw-input--mono input input-sm" data-kw-picker="date" dir="ltr" inputmode="numeric" autocomplete="off" placeholder="YYYY/MM/DD" wire:model="form.recurrenceUntil">
+                    <button type="button" class="kw-picker-trigger btn btn-xs btn-ghost btn-square" data-kw-picker-btn="date" data-kw-part="picker-trigger" data-kw-action="open-date-picker" tabindex="-1" aria-label="{{ $t('recurrence.until_label') }}">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </button>
+                </div>
                 <small class="kw-field__hint">{{ $t('form.date_hint') }}</small>
                 @if (! empty($formErrors['recurrenceUntil']))<small class="kw-field__error" role="alert">{{ $formErrors['recurrenceUntil'] }}</small>@endif
             </div>

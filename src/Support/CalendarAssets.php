@@ -27,13 +27,15 @@ final class CalendarAssets
 
     private static function read(string $file): string
     {
-        if (isset(self::$cache[$file])) {
-            return self::$cache[$file];
-        }
         $path = dirname(__DIR__, 2).'/public/dist/'.$file;
+        $mtime = is_file($path) ? (int) filemtime($path) : 0;
+        $cacheKey = $file.':'.$mtime;
+        if (isset(self::$cache[$cacheKey])) {
+            return self::$cache[$cacheKey];
+        }
         $contents = is_file($path) ? (string) file_get_contents($path) : '';
 
         // The bundle is embedded in <style>/<script>; a closing tag inside would break out of it.
-        return self::$cache[$file] = str_ireplace(['</style', '</script'], ['<\/style', '<\/script'], $contents);
+        return self::$cache[$cacheKey] = str_ireplace(['</style', '</script'], ['<\/style', '<\/script'], $contents);
     }
 }

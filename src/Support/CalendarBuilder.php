@@ -14,6 +14,8 @@ use Karnoweb\Calendar\Data\CalendarSettings;
 use Karnoweb\Calendar\Data\CalendarViews;
 use Karnoweb\Calendar\Data\EventSourceData;
 use Karnoweb\Calendar\Exceptions\InvalidCalendarDefinition;
+use Karnoweb\Calendar\Google\GoogleCalendarProvider;
+use Karnoweb\Calendar\Holidays\HolidayProvider;
 use Karnoweb\Calendar\Providers\EloquentEventProvider;
 
 /**
@@ -216,13 +218,13 @@ final class CalendarBuilder
     /** Google Calendar source (key "google"). Pass false to leave it out, e.g. ->google(config('app.google')). */
     public function google(bool $enabled = true, string $label = 'Google Calendar'): self
     {
-        return $enabled ? $this->addSource('google', ['provider' => \Karnoweb\Calendar\Google\GoogleCalendarProvider::class, 'label' => $label, 'color' => '#1a73e8']) : $this;
+        return $enabled ? $this->addSource('google', ['provider' => GoogleCalendarProvider::class, 'label' => $label, 'color' => '#0d9488']) : $this;
     }
 
     /** Official holidays source (key "holidays", read-only, data from config('calendar.holidays')). */
     public function holidays(bool $enabled = true, string $label = 'Official holidays'): self
     {
-        return $enabled ? $this->addSource('holidays', ['provider' => \Karnoweb\Calendar\Holidays\HolidayProvider::class, 'label' => $label, 'color' => '#d93025', 'readOnly' => true]) : $this;
+        return $enabled ? $this->addSource('holidays', ['provider' => HolidayProvider::class, 'label' => $label, 'color' => '#d93025', 'readOnly' => true]) : $this;
     }
 
     /** @param class-string<ActionHandler> $handlerClass */

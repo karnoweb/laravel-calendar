@@ -25,6 +25,8 @@
     role="button"
     tabindex="0"
     data-kw-event
+    data-kw-part="event-card"
+    data-kw-action="open-event"
     data-ref="{{ $card['ref'] }}"
     data-version="{{ $card['version'] }}"
     data-day="{{ $card['dayIso'] }}"
@@ -41,22 +43,22 @@
     @if ($continuesBefore)
         <span class="kw-event__cont kw-event__cont--before" aria-hidden="true">‹</span>
     @endif
-    <span class="kw-event__content">
-        <span class="kw-event__top">
-            <span class="kw-event__title" dir="auto">{{ $e->title }}</span>
+    <span class="kw-event__content" data-kw-part="event-content">
+        <span class="kw-event__top" data-kw-part="event-top">
+            <span class="kw-event__title" data-kw-part="event-title" dir="auto">{{ $e->title }}</span>
             @if (! $card['movable'])
-                <span class="kw-event__lock" title="{{ $t('details.movable_off') }}" aria-hidden="true">
+                <span class="kw-event__lock" data-kw-part="event-lock" title="{{ $t('details.movable_off') }}" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </span>
             @endif
         </span>
         @if ($card['timeLabel'] && ! $compact)
-            <span class="kw-event__time" dir="auto">{{ (($viewName ?? '') === 'month' || ($card['lanes'] ?? 1) > 1) ? $card['timeLabel'] : ($card['timeRange'] ?: $card['timeLabel']) }}</span>
+            <span class="kw-event__time" data-kw-part="event-time" dir="auto">{{ (($viewName ?? '') === 'month' || ($card['lanes'] ?? 1) > 1) ? $card['timeLabel'] : ($card['timeRange'] ?: $card['timeLabel']) }}</span>
         @endif
     </span>
     @if ($continuesAfter)
         <span class="kw-event__cont kw-event__cont--after" aria-hidden="true">›</span>
     @endif
     @if (! $compact && isset($views['eventPopover']))@include($views['eventPopover'], ['card' => $card])@endif
-    @if ($card['resizable'] && in_array($card['position'], ['single', 'end'], true))<span class="kw-event__resize" data-kw-resize aria-hidden="true"></span>@endif
+    @if ($card['resizable'] && in_array($card['position'], ['single', 'end'], true))<span class="kw-event__resize" data-kw-resize data-kw-part="event-resize" data-kw-action="resize-event" aria-hidden="true"></span>@endif
 </div>

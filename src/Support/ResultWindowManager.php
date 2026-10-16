@@ -16,7 +16,7 @@ use Karnoweb\Calendar\Security\AllowedCssToken;
  */
 final class ResultWindowManager
 {
-    public const ROW_HEIGHT = 56;
+    public const ROW_HEIGHT = 64;
 
     public function __construct(private readonly DateLabelFormatter $labels) {}
 
@@ -45,7 +45,7 @@ final class ResultWindowManager
                     : $this->labels->time($event->start, $timezone, $locale).' – '.$this->labels->time($event->end, $timezone, $locale),
                 'color' => AllowedCssToken::cssClass($color),
                 'style' => AllowedCssToken::style($color),
-                'source' => $source->label,
+                'source' => CalendarTranslations::label($source->label, $locale),
                 'readOnly' => $event->isReadOnly(),
                 'version' => $event->version,
             ];

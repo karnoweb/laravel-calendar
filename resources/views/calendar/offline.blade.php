@@ -1,1 +1,1 @@
-<div class="kw-calendar__offline" data-kw-offline hidden role="status">{{ $t('states.offline') }}</div>
+<div class="kw-calendar__offline alert alert-warning" data-kw-offline data-kw-part="offline-banner" hidden role="status">{{ $t('states.offline') }}</div>

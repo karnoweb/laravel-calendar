@@ -1,5 +1,5 @@
 {{-- $kind: denied | rate_limited | error. Never shows internal details. --}}
-<div class="kw-state kw-state--{{ $kind }}" role="alert">
+<div class="kw-state kw-state--{{ $kind }} alert alert-error" data-kw-part="error-state" role="alert">
     <p>
         @if ($kind === 'denied')
             {{ $t('states.denied') }}
@@ -10,6 +10,6 @@
         @endif
     </p>
     @if ($kind !== 'denied')
-        <button type="button" class="kw-btn" wire:click="refreshNow">{{ $t('states.retry') }}</button>
+        <button type="button" class="kw-btn btn btn-sm btn-outline" data-kw-part="retry-btn" data-kw-action="retry" wire:click="refreshNow">{{ $t('states.retry') }}</button>
     @endif
 </div>

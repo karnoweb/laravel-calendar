@@ -12,5 +12,6 @@ import './modal-focus.js';
 import './recurrence-controller.js';
 import './network-state.js';
 import './refresh-controller.js';
+import './datetime-picker.js';
 
-window.KarnowebCalendar = Object.freeze({ version: '1.0.0' });
+window.KarnowebCalendar = Object.freeze({ version: '1.0.1' });

@@ -15,7 +15,7 @@ final class SafeCalendarMarkup
     {
         $value ??= '';
         $value = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
-        $value = (string) preg_replace('/[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $value);
+        $value = (string) preg_replace('/[\x{200B}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $value);
         $value = trim($value);
 
         return mb_strlen($value) > $maxLength ? mb_substr($value, 0, $maxLength) : $value;
@@ -27,7 +27,7 @@ final class SafeCalendarMarkup
         $value ??= '';
         $value = str_replace(["\r\n", "\r"], "\n", $value);
         $value = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
-        $value = (string) preg_replace('/[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $value);
+        $value = (string) preg_replace('/[\x{200B}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $value);
         $value = trim($value);
 
         return mb_strlen($value) > $maxLength ? mb_substr($value, 0, $maxLength) : $value;
