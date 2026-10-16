@@ -226,10 +226,27 @@ function openDatePicker(input, trigger) {
         pop.replaceChildren();
         const head = document.createElement('div');
         head.className = 'kw-picker__head';
+        const makeChev = (isNext) => {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', isNext ? 'kw-chev kw-chev--next' : 'kw-chev');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('width', '16');
+            svg.setAttribute('height', '16');
+            svg.setAttribute('aria-hidden', 'true');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M15 6l-6 6 6 6');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', 'currentColor');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            svg.appendChild(path);
+            return svg;
+        };
         const prevBtn = document.createElement('button');
         prevBtn.type = 'button';
         prevBtn.className = 'kw-picker__nav btn btn-xs btn-ghost btn-square';
-        prevBtn.textContent = pop.dir === 'rtl' ? '›' : '‹';
+        prevBtn.appendChild(makeChev(false));
         prevBtn.setAttribute('aria-label', lang === 'fa' ? 'ماه قبل' : 'Previous month');
         prevBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -245,7 +262,7 @@ function openDatePicker(input, trigger) {
         const nextBtn = document.createElement('button');
         nextBtn.type = 'button';
         nextBtn.className = 'kw-picker__nav btn btn-xs btn-ghost btn-square';
-        nextBtn.textContent = pop.dir === 'rtl' ? '‹' : '›';
+        nextBtn.appendChild(makeChev(true));
         nextBtn.setAttribute('aria-label', lang === 'fa' ? 'ماه بعد' : 'Next month');
         nextBtn.addEventListener('click', (e) => {
             e.stopPropagation();

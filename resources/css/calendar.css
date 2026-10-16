@@ -1940,11 +1940,16 @@ html.light .kw-calendar .kw-event--span,
     width: 100%;
 }
 .kw-input-picker .kw-input {
-    padding-inline-end: 34px;
+    padding-right: 36px;
+}
+.kw-calendar[dir="rtl"] .kw-input-picker .kw-input {
+    padding-right: 12px;
+    padding-left: 36px;
+    text-align: right;
 }
 .kw-picker-trigger {
     position: absolute;
-    inset-inline-end: 4px;
+    inset-inline-end: 5px;
     top: 50%;
     transform: translateY(-50%);
     width: 26px;
