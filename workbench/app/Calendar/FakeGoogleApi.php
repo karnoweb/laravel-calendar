@@ -14,8 +14,34 @@ final class FakeGoogleApi
     {
         Http::fake([
             'www.googleapis.com/*' => function (Request $request) {
-                if ($request->method() === 'GET' && ! str_contains(parse_url($request->url(), PHP_URL_PATH) ?? '', '/events/')) {
+                $path = parse_url($request->url(), PHP_URL_PATH) ?? '';
+                if ($request->method() === 'GET' && ! str_contains($path, '/events/')) {
                     return Http::response(['items' => self::items(), 'etag' => 'x']);
+                }
+                if (preg_match('#/events/([^/?]+)$#', $path, $m)) {
+                    $eventId = urldecode($m[1]);
+                    $found = null;
+                    foreach (self::items() as $item) {
+                        if (($item['id'] ?? '') === $eventId) {
+                            $found = $item;
+                            break;
+                        }
+                    }
+                    if ($request->method() === 'GET') {
+                        return $found !== null
+                            ? Http::response($found)
+                            : Http::response(['error' => ['code' => 404]], 404);
+                    }
+                    if ($request->method() === 'DELETE') {
+                        return Http::response('', 204);
+                    }
+                    $body = $request->data();
+                    $base = $found ?? ['id' => $eventId, 'summary' => 'Google Event'];
+
+                    return Http::response(array_replace($base, $body, [
+                        'id' => $eventId,
+                        'etag' => '"'.substr(md5((string) microtime(true)), 0, 12).'"',
+                    ]));
                 }
                 if ($request->method() === 'DELETE') {
                     return Http::response('', 204);

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->dateTime('starts_at'); // UTC first occurrence
             $table->dateTime('ends_at');
             $table->boolean('all_day')->default(false);
+            $table->boolean('movable')->default(true);
             $table->string('timezone', 64);
             $table->json('rule');
             $table->json('exceptions')->nullable();

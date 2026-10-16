@@ -15,7 +15,12 @@ function render(list) {
     const host = list.querySelector('[data-kw-rowhost]');
     if (!host) return;
     const rowHeight = Number(list.dataset.rowHeight) || 56;
-    const rows = list.__kwRows || (list.__kwRows = parse(list));
+    const raw = list.dataset.rows || '[]';
+    if (list.__kwRaw !== raw || !list.__kwRows) {
+        list.__kwRaw = raw;
+        list.__kwRows = parse(list);
+    }
+    const rows = list.__kwRows;
     const start = Math.max(0, Math.floor(list.scrollTop / rowHeight) - OVERSCAN);
     const end = Math.min(rows.length, Math.ceil((list.scrollTop + list.clientHeight) / rowHeight) + OVERSCAN);
     const frag = document.createDocumentFragment();
@@ -38,6 +43,7 @@ function render(list) {
             time.textContent = row.time;
             const title = document.createElement('span');
             title.className = 'kw-list__title';
+            title.dir = 'auto';
             title.textContent = row.title;
             const source = document.createElement('span');
             source.className = 'kw-list__source';

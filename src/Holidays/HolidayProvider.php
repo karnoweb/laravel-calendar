@@ -10,9 +10,11 @@ use Karnoweb\Calendar\Contracts\EventProvider;
 use Karnoweb\Calendar\Data\ActionCapabilities;
 use Karnoweb\Calendar\Data\CalendarContext;
 use Karnoweb\Calendar\Data\CalendarEventData;
+use Karnoweb\Calendar\Data\DateRange;
 use Karnoweb\Calendar\Data\EventPage;
 use Karnoweb\Calendar\Data\EventQuery;
 use Karnoweb\Calendar\Data\EventReference;
+use Karnoweb\Calendar\Support\IsoDate;
 use Morilog\Jalali\CalendarUtils;
 
 /**
@@ -77,6 +79,18 @@ class HolidayProvider implements EventProvider
 
     public function find(EventReference $reference, CalendarContext $context): ?CalendarEventData
     {
+        if (! preg_match('/^(\d{4}-\d{2}-\d{2})-(\d+)$/', $reference->eventId, $m)) {
+            return null;
+        }
+        $iso = $m[1];
+        $range = DateRange::ofLocalDays($iso, IsoDate::addDays($iso, 1), $context->timezone);
+        $page = $this->fetch(new EventQuery($range, 50), $context);
+        foreach ($page->events as $event) {
+            if ($event->reference->eventId === $reference->eventId) {
+                return $event;
+            }
+        }
+
         return null;
     }
 

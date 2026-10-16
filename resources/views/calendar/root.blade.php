@@ -2,9 +2,12 @@
     $locale = $locale ?? app()->getLocale();
     $dir = $dir ?? 'ltr';
     $t = fn (string $key, array $replace = []) => (string) trans('calendar::calendar.'.$key, $replace, $locale);
+    $showSidePanel = (bool) ($showSidePanel ?? false);
+    $hasMobileDrawer = (bool) ($hasMobileDrawer ?? $showSidePanel);
+    $sideOpen = ($sideOpen ?? true) && $showSidePanel;
 @endphp
 <div
-    class="kw-calendar {{ $extraClass ?? '' }} @if ($compact ?? false) kw-calendar--compact @endif"
+    class="kw-calendar {{ $extraClass ?? '' }} @if ($compact ?? false) kw-calendar--compact @endif @if ($miniMonth ?? false) kw-calendar--mini-month @endif @if ($agenda ?? false) kw-calendar--agenda @endif"
     dir="{{ $dir }}"
     data-kw-calendar
     data-theme="{{ $theme ?? 'auto' }}"
@@ -22,15 +25,25 @@
     @elseif (($status ?? 'ok') === 'error')
         @include('calendar::calendar.error', ['kind' => 'error'])
     @else
-        @include('calendar::calendar.toolbar')
+        @if ($miniMonth ?? false)
+            @include('calendar::calendar.toolbar-mini')
+        @elseif ($agenda ?? false)
+            @include('calendar::calendar.toolbar-agenda')
+        @else
+            @include('calendar::calendar.toolbar')
+        @endif
 
-        <div class="kw-layout">
-        <aside class="kw-side" @if ($compact ?? false) hidden @endif>
-            @if ($canCreate)
-                <button type="button" class="kw-create" wire:click="openCreate"><span class="kw-create__plus" aria-hidden="true">+</span>{{ $t('toolbar.new_event') }}</button>
-            @endif
-            @include('calendar::calendar.filters')
-        </aside>
+        <div class="kw-layout @if (! $showSidePanel || ! $sideOpen) is-side-closed @endif">
+        @if ($showSidePanel || $hasMobileDrawer)
+            <div class="kw-side-backdrop" data-kw-side-close aria-hidden="true"></div>
+            <aside id="kw-side-panel" class="kw-side @if (! $showSidePanel) kw-side--mobile-only @endif" @if (! $sideOpen) hidden @endif>
+                <div class="kw-side__head">
+                    <span class="kw-side__head-title">{{ $t('toolbar.panel_title') }}</span>
+                    <button type="button" class="kw-btn kw-btn--icon kw-side__close" data-kw-side-close aria-label="{{ $t('details.close') }}">×</button>
+                </div>
+                @include('calendar::calendar.filters')
+            </aside>
+        @endif
         <div class="kw-main">
         @include('calendar::calendar.offline')
 
@@ -45,7 +58,9 @@
         @endif
 
         <div class="kw-calendar__body" wire:loading.class="is-loading" wire:target="previous,next,today,setView,setSystem,goTo,toggleSource,setFilter,resetFilters,updatedSearch,loadMore">
-            @if ($viewName === 'month')
+            @if ($agenda ?? false)
+                @include('calendar::calendar.agenda')
+            @elseif ($viewName === 'month')
                 @include('calendar::calendar.month')
             @elseif ($viewName === 'week' || $viewName === 'day')
                 @include('calendar::calendar.week')

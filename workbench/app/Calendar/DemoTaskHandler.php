@@ -89,7 +89,7 @@ final class DemoTaskHandler implements ActionHandler
                 'scope_key' => $context->scopeKey, 'owner_id' => $context->actorId,
                 'title' => $in->title, 'description' => $in->description, 'location' => $in->location,
                 'starts_at' => $this->utc($in->start), 'ends_at' => $this->utc($in->end),
-                'all_day' => $in->allDay, 'timezone' => $in->timezone,
+                'all_day' => $in->allDay, 'movable' => $in->movable, 'timezone' => $in->timezone,
                 'rule' => $in->recurrence->toArray(), 'exceptions' => [], 'version' => 1,
             ]);
 
@@ -99,7 +99,7 @@ final class DemoTaskHandler implements ActionHandler
         $t = DemoTask::create([
             'scope_key' => $context->scopeKey, 'owner_id' => $context->actorId, 'kind' => 'task',
             'title' => $in->title, 'description' => $in->description, 'location' => $in->location,
-            'status' => $in->status ?? 'open', 'timezone' => $in->timezone, 'all_day' => $in->allDay, 'version' => 1,
+            'status' => $in->status ?? 'open', 'timezone' => $in->timezone, 'all_day' => $in->allDay, 'movable' => $in->movable, 'version' => 1,
         ] + $this->times($in->start, $in->end, $in->allDay));
 
         return ActionResult::success([new EventReference('tasks', (string) $t->id)], newVersion: '1');
@@ -131,14 +131,20 @@ final class DemoTaskHandler implements ActionHandler
                 if ($in->recurrence !== null) {
                     return ActionResult::failure(ActionStatus::Unsupported, 'calendar::calendar.messages.unsupported');
                 }
-                $task->fill(['title' => $in->title, 'description' => $in->description, 'location' => $in->location, 'timezone' => $in->timezone, 'all_day' => $in->allDay]
+                $task->fill(['title' => $in->title, 'description' => $in->description, 'location' => $in->location, 'timezone' => $in->timezone, 'all_day' => $in->allDay, 'movable' => $in->movable]
                     + $this->times($in->start, $in->end, $in->allDay));
                 break;
             case CalendarAction::Move:
+                if (! ($task->movable ?? true)) {
+                    return ActionResult::failure(ActionStatus::ReadOnly, 'calendar::calendar.messages.read_only');
+                }
                 $m = MoveEventInput::fromCommand($command, $context->timezone);
                 $task->fill($this->times($m->start, $m->end, $m->allDay));
                 break;
             case CalendarAction::Resize:
+                if (! ($task->movable ?? true)) {
+                    return ActionResult::failure(ActionStatus::ReadOnly, 'calendar::calendar.messages.read_only');
+                }
                 $r = ResizeEventInput::fromCommand($command, $context->timezone);
                 $task->ends_at = $this->utc($r->end);
                 break;
@@ -193,10 +199,16 @@ final class DemoTaskHandler implements ActionHandler
 
                 return $this->splitSeries($row, $series, (string) $key, $in->start, $in->end, $in);
             case CalendarAction::Move:
+                if (! ($row->movable ?? true)) {
+                    return ActionResult::failure(ActionStatus::ReadOnly, 'calendar::calendar.messages.read_only');
+                }
                 $m = MoveEventInput::fromCommand($command, $context->timezone);
 
                 return $this->moveOrResize($row, $series, (string) $key, $scope, $m->start, $m->end);
             case CalendarAction::Resize:
+                if (! ($row->movable ?? true)) {
+                    return ActionResult::failure(ActionStatus::ReadOnly, 'calendar::calendar.messages.read_only');
+                }
                 $r = ResizeEventInput::fromCommand($command, $context->timezone);
                 [$curStart] = $this->currentTimes($series, (string) $key);
 
@@ -284,7 +296,7 @@ final class DemoTaskHandler implements ActionHandler
 
     private function updateWholeSeries(DemoRecurringSeries $row, RecurrenceSeriesData $series, ?string $key, CreateEventInput $in): ActionResult
     {
-        $row->fill(['title' => $in->title, 'description' => $in->description, 'location' => $in->location]);
+        $row->fill(['title' => $in->title, 'description' => $in->description, 'location' => $in->location, 'movable' => $in->movable]);
         if ($key !== null) {
             [$curStart] = $this->currentTimes($series, $key);
             $delta = $in->start->getTimestamp() - $curStart->getTimestamp();

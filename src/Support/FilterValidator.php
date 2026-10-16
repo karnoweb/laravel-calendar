@@ -19,10 +19,29 @@ final class FilterValidator
     public static function sanitize(CalendarDefinition $definition, array $input): array
     {
         $clean = [];
+        $allowedByField = [];
         foreach ($definition->filters as $filter) {
-            $raw = $input[$filter->key()] ?? $filter->default;
-            if (is_string($raw) && in_array($raw, $filter->allowedValues(), true)) {
-                $clean[$filter->key()] = $raw;
+            foreach ($filter->allowedValues() as $val) {
+                $allowedByField[$filter->field][$val] = true;
+            }
+        }
+
+        foreach ($definition->filters as $filter) {
+            $scopedRaw = $input[$filter->key()] ?? null;
+            if (is_string($scopedRaw) && in_array($scopedRaw, $filter->allowedValues(), true)) {
+                $clean[$filter->key()] = $scopedRaw;
+
+                continue;
+            }
+            $fieldRaw = $input[$filter->field] ?? null;
+            if (is_string($fieldRaw) && isset($allowedByField[$filter->field][$fieldRaw])) {
+                $clean[$filter->field] = $fieldRaw;
+                $clean[$filter->key()] = $fieldRaw;
+
+                continue;
+            }
+            if (is_string($filter->default) && in_array($filter->default, $filter->allowedValues(), true)) {
+                $clean[$filter->key()] = $filter->default;
             }
         }
 

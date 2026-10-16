@@ -57,7 +57,49 @@ trait HandlesCalendarForms
             $this->formSource = $sourceKey ?? $writable[0];
             $this->formOperationId = CalendarOperationId::generate();
             $this->form = $this->defaults($engine, $state, $date, $start, $date, $end);
+            $this->applySchemaDefaults($r, $this->formSource);
         });
+    }
+
+    public function updatedFormSource(string $value): void
+    {
+        if (! $this->formOpen || $this->formMode !== 'create') {
+            return;
+        }
+        $this->guarded(function (ResolvedCalendar $r) use ($value): void {
+            $guard = app(CalendarAuthorizationGuard::class);
+            $writable = [];
+            foreach ($r->definition->sourceKeys() as $key) {
+                if ($guard->writeDenial($r->definition, $r->context, CalendarAction::Create, $key) === null) {
+                    $writable[] = $key;
+                }
+            }
+            if (! in_array($value, $writable, true)) {
+                $this->formSource = $writable[0] ?? '';
+
+                return;
+            }
+            $this->applySchemaDefaults($r, $value);
+        });
+    }
+
+    protected function applySchemaDefaults(ResolvedCalendar $r, string $sourceKey): void
+    {
+        if ($sourceKey === '' || ! $r->definition->hasSource($sourceKey)) {
+            return;
+        }
+        $schema = app(CalendarFormResolver::class)->schema($r->definition, $r->context, $sourceKey, null);
+        foreach ($schema->fields as $field) {
+            $name = (string) ($field['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+            if (! array_key_exists($name, $this->form)) {
+                $this->form[$name] = $field['default'] ?? (($field['type'] ?? '') === 'checkbox' ? false : '');
+            } elseif (isset($field['default']) && ($this->form[$name] === '' || $this->form[$name] === null)) {
+                $this->form[$name] = $field['default'];
+            }
+        }
     }
 
     public function openEdit(string $ref): void
@@ -106,8 +148,12 @@ trait HandlesCalendarForms
         );
         $this->form['title'] = $event->title;
         $this->form['allDay'] = $event->allDay;
+        $this->form['movable'] = $event->capabilities->canMove;
         $this->form['location'] = (string) $event->location;
         $this->form['description'] = (string) $event->description;
+        $this->form['status'] = (string) ($event->status ?? '');
+        $this->form['category'] = (string) ($event->category ?? '');
+        $this->applySchemaDefaults($r, $this->formSource);
     }
 
     public function submitForm(): void
@@ -206,7 +252,7 @@ trait HandlesCalendarForms
         };
 
         return [
-            'title' => '', 'allDay' => false,
+            'title' => '', 'allDay' => false, 'movable' => true,
             'startDate' => $fmt($startIso), 'startTime' => sprintf('%02d:%02d', intdiv($startMinute, 60), $startMinute % 60),
             'endDate' => $fmt($endIso), 'endTime' => sprintf('%02d:%02d', intdiv($endMinute, 60), $endMinute % 60),
             'startOffset' => '', 'endOffset' => '',

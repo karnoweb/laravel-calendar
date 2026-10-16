@@ -31,7 +31,21 @@ trait HasCalendarFilters
             $next = $this->filters;
             if ($value === '') {
                 unset($next[$key]);
+                if (! str_contains($key, '.')) {
+                    foreach (array_keys($next) as $existingKey) {
+                        if (str_ends_with($existingKey, '.'.$key)) {
+                            unset($next[$existingKey]);
+                        }
+                    }
+                }
             } else {
+                if (! str_contains($key, '.')) {
+                    foreach (array_keys($next) as $existingKey) {
+                        if (str_ends_with($existingKey, '.'.$key)) {
+                            unset($next[$existingKey]);
+                        }
+                    }
+                }
                 $next[$key] = $value;
             }
             // Only values declared by the server survive.

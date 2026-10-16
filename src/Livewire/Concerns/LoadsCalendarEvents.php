@@ -9,6 +9,7 @@ use Karnoweb\Calendar\Calendar\CalendarEngine;
 use Karnoweb\Calendar\Calendar\DateLabelFormatter;
 use Karnoweb\Calendar\Calendar\EventLayoutEngine;
 use Karnoweb\Calendar\Calendar\IsoDate;
+use Karnoweb\Calendar\Calendar\MonthSpanPlanner;
 use Karnoweb\Calendar\Contracts\CalendarFormResolver;
 use Karnoweb\Calendar\Data\CalendarContext;
 use Karnoweb\Calendar\Data\CalendarDefinition;
@@ -97,6 +98,17 @@ trait LoadsCalendarEvents
         $guard = app(CalendarAuthorizationGuard::class);
         $cards = fn (array $events, string $day) => array_map(fn (CalendarEventData $e) => $this->card($e, $def, $ctx, $guard, $day), $events);
 
+        $embedLayout = (string) ($this->embed['layout'] ?? 'full');
+        $globalMoveEnabled = $this->movingEnabled && $settings->feature('move') && (bool) config('calendar.features.move', true);
+        $confirmMoveEnabled = $this->confirmMoveOverride ?? $settings->feature('confirmMove');
+        $filtersFeature = $settings->feature('filters');
+        $sourcesUi = $filtersFeature ? $this->sourceModels($def, $disabled, $read) : [];
+        $filtersUi = $filtersFeature ? $this->filterModels($def, $activeFilters, $disabled, $read) : [];
+        $showSidePanel = ! in_array($embedLayout, ['compact', 'mini-month', 'agenda'], true)
+            && $filtersFeature
+            && (count($sourcesUi) > 1 || $filtersUi !== [] || $settings->feature('move'));
+        $hasMobileDrawer = ! in_array($embedLayout, ['compact', 'mini-month', 'agenda'], true);
+
         $model = [
             'status' => 'ok',
             'definition' => $def,
@@ -112,18 +124,30 @@ trait LoadsCalendarEvents
             'today' => $engine->today($state),
             'cursorIso' => $state->date,
             'features' => $settings->features,
-            'compact' => ($this->embed['layout'] ?? 'full') === 'compact',
+            'movingEnabled' => $globalMoveEnabled,
+            'confirmMoveEnabled' => $confirmMoveEnabled,
+            'embedLayout' => $embedLayout,
+            'compact' => $embedLayout === 'compact',
+            'miniMonth' => $embedLayout === 'mini-month',
+            'agenda' => $embedLayout === 'agenda',
             'enabledViews' => array_map(fn ($v) => $v->value, $settings->enabledViews),
             'enabledSystems' => array_map(fn ($s) => $s->value, $settings->enabledSystems),
             'read' => $read,
             'failedSources' => array_map(fn (string $k) => $def->source($k)->label, $read->failedSources()),
             'search' => $this->search,
-            'sources' => $this->sourceModels($def, $disabled, $read),
-            'filtersUi' => $this->filterModels($def, $activeFilters),
+            'sources' => $sourcesUi,
+            'filtersUi' => $filtersUi,
+            'showSidePanel' => $showSidePanel,
+            'hasMobileDrawer' => $hasMobileDrawer,
             'hasActiveFilters' => $activeFilters !== [] || $disabled !== [] || $search !== '',
             'canCreate' => $settings->feature('create') && $guard->canWriteAnything($def, $ctx),
             'writableSources' => $this->writableSources($def, $ctx, $guard),
-            'monthLimit' => ($this->embed['layout'] ?? 'full') === 'compact' ? min(2, $settings->limit('monthCellLimit')) : $settings->limit('monthCellLimit'),
+            'monthLimit' => match ($embedLayout) {
+                'mini-month' => 0,
+                'compact' => min(2, $settings->limit('monthCellLimit')),
+                default => $settings->limit('monthCellLimit'),
+            },
+            'agendaLimit' => $embedLayout === 'agenda' ? (int) ($this->embed['agendaLimit'] ?? 8) : 0,
             'weekdayNames' => [],
             'hours' => range(0, 23),
             'labels' => $labels,
@@ -164,9 +188,47 @@ trait LoadsCalendarEvents
         $grid = $engine->monthGrid($state, $settings);
         $days = array_map(fn ($d) => $d->iso, $grid->days());
         $byDay = $layout->byDay($read->events, $days, $state->timezone);
+        $planner = app(MonthSpanPlanner::class);
+        $mini = ($model['miniMonth'] ?? false) === true;
         $rows = [];
         foreach ($grid->rows as $row) {
-            $rows[] = array_map(fn ($day) => ['day' => $day, 'cards' => $cards($byDay[$day->iso] ?? [], $day->iso), 'count' => count($byDay[$day->iso] ?? [])], $row);
+            $weekIsos = array_map(fn ($d) => $d->iso, $row);
+            $spanPlan = $planner->plan($read->events, $weekIsos, $state->timezone);
+            $spanRefs = [];
+            $spanItems = [];
+            $maxLane = 0;
+            foreach ($spanPlan as $span) {
+                $card = ($cards([$span['event']], $span['labelIso']))[0];
+                $spanRefs[$card['ref']] = true;
+                $spanItems[] = $span + ['card' => $card];
+                $maxLane = max($maxLane, $span['lane']);
+            }
+            $cells = [];
+            foreach ($row as $day) {
+                $dayEvents = $byDay[$day->iso] ?? [];
+                $cellCards = [];
+                $markers = [];
+                $spanCount = 0;
+                foreach ($dayEvents as $event) {
+                    $card = ($cards([$event], $day->iso))[0];
+                    if ($mini) {
+                        $markers[$card['colorClass']] = $card['colorStyle'];
+                    }
+                    if (isset($spanRefs[$card['ref']])) {
+                        $spanCount++;
+                        continue;
+                    }
+                    $cellCards[] = $card;
+                }
+                $cells[] = [
+                    'day' => $day,
+                    'cards' => $cellCards,
+                    'count' => count($dayEvents),
+                    'spanCount' => $spanCount,
+                    'markers' => $markers,
+                ];
+            }
+            $rows[] = ['cells' => $cells, 'spans' => $spanItems, 'spanLanes' => $spanItems === [] ? 0 : $maxLane + 1];
         }
         $model['monthRows'] = $rows;
     }
@@ -200,11 +262,26 @@ trait LoadsCalendarEvents
             $timed = [];
             foreach ($layout->timeLayout($events, $day->iso, $tz) as $item) {
                 $card = ($cards([$item['event']], $day->iso))[0];
+                $lanes = max(1, (int) $item['lanes']);
+                $lane = (int) $item['lane'];
+                if ($lanes === 1) {
+                    $width = 100.0;
+                    $left = 0.0;
+                } elseif ($lanes === 2) {
+                    $width = 50.0;
+                    $left = $lane * 50.0;
+                } else {
+                    $minWidth = count($days) > 1 ? 56.0 : 34.0;
+                    $width = max(round(100 / $lanes, 4), $minWidth);
+                    $left = round($lane * ((100.0 - $width) / ($lanes - 1)), 4);
+                }
                 $timed[] = $card + [
                     'top' => round($item['startMinute'] / 1440 * 100, 4),
                     'height' => max(1.4, round(($item['endMinute'] - $item['startMinute']) / 1440 * 100, 4)),
-                    'left' => round($item['lane'] / $item['lanes'] * 100, 4),
-                    'width' => round(100 / $item['lanes'], 4),
+                    'left' => $left,
+                    'width' => $width,
+                    'lane' => $lane,
+                    'lanes' => $lanes,
                     'continuesBefore' => $item['continuesBefore'],
                     'continuesAfter' => $item['continuesAfter'],
                 ];
@@ -218,11 +295,38 @@ trait LoadsCalendarEvents
     /** @param array<string, mixed> $model */
     private function composeList(array &$model, CalendarDefinition $def, $system, string $tz, string $locale, ReadResult $read): void
     {
-        $rows = app(ResultWindowManager::class)->rows($read->events, $def, $system, $tz, $locale);
+        $events = $read->events;
+        if (($model['agendaLimit'] ?? 0) > 0) {
+            $today = $model['today'] ?? IsoDate::today();
+            $upcoming = array_values(array_filter($events, fn (CalendarEventData $e) => $e->lastDate($tz) >= $today));
+            $events = array_slice($upcoming !== [] ? $upcoming : $events, 0, (int) $model['agendaLimit']);
+        }
+        $rows = app(ResultWindowManager::class)->rows($events, $def, $system, $tz, $locale);
         $model['listRowsJson'] = json_encode($rows, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         $model['listRowCount'] = count($rows);
         $model['listRowHeight'] = ResultWindowManager::ROW_HEIGHT;
-        $model['listLoaded'] = count($read->events);
+        $model['listLoaded'] = count($events);
+
+        $guard = app(CalendarAuthorizationGuard::class);
+        $labels = app(DateLabelFormatter::class);
+        $agendaItems = [];
+        foreach ($events as $event) {
+            $firstIso = $event->firstDate($tz);
+            $card = $this->card($event, $def, $this->resolved()->context, $guard, $firstIso);
+            [, $m, $d] = $system->fromIso($firstIso);
+            $wd = IsoDate::weekday($firstIso);
+            $agendaItems[] = [
+                'card' => $card,
+                'weekday' => $labels->weekdayName($wd, $locale, false),
+                'dayNum' => $labels->digits($d, $locale),
+                'monthName' => $labels->monthName($system->system(), $m, $locale),
+                'sourceLabel' => CalendarTranslations::label($card['source']->label, $locale),
+                'timeText' => $event->allDay ? (string) trans('calendar::calendar.details.all_day', [], $locale) : $card['timeRange'],
+                'isToday' => $firstIso === ($model['today'] ?? ''),
+                'isWeekend' => in_array($wd, $system->weekendDays(), true),
+            ];
+        }
+        $model['agendaItems'] = $agendaItems;
     }
 
     /**
@@ -294,10 +398,16 @@ trait LoadsCalendarEvents
             ? $labels->dayTitle($system, $first, $ctx->locale).($last > $first ? ' → '.$labels->dayTitle($system, $last, $ctx->locale) : '')
             : $labels->dayTitle($system, $first, $ctx->locale).' '.$labels->time($event->start, $tz, $ctx->locale).' – '.($last > $first ? $labels->dayTitle($system, $last, $ctx->locale).' ' : '').$labels->time($event->end, $tz, $ctx->locale);
 
+        $recurrenceAllowed = ! $event->isRecurring || $def->settings->feature('recurrence');
+        $editAction = $event->isRecurring ? CalendarAction::OccurrenceUpdate : CalendarAction::Update;
+        $deleteAction = $event->isRecurring ? CalendarAction::OccurrenceDelete : CalendarAction::Delete;
+        $toggleAction = $event->isRecurring ? CalendarAction::SeriesUpdate : CalendarAction::Update;
+
         return $card + [
             'when' => $when,
-            'canEdit' => $event->capabilities->canEdit && $guard->writeDenial($def, $ctx, CalendarAction::Update, $ref->sourceKey) === null,
-            'canDelete' => $event->capabilities->canDelete && $guard->writeDenial($def, $ctx, CalendarAction::Delete, $ref->sourceKey) === null,
+            'canEdit' => $recurrenceAllowed && $event->capabilities->canEdit && $guard->writeDenial($def, $ctx, $editAction, $ref->sourceKey) === null,
+            'canDelete' => $recurrenceAllowed && $event->capabilities->canDelete && $guard->writeDenial($def, $ctx, $deleteAction, $ref->sourceKey) === null,
+            'canToggleMovable' => $recurrenceAllowed && ! $card['source']->readOnly && $event->capabilities->canEdit && $guard->writeDenial($def, $ctx, $toggleAction, $ref->sourceKey) === null,
         ];
     }
 
@@ -312,8 +422,9 @@ trait LoadsCalendarEvents
         $last = $event->lastDate($tz);
         $position = $first === $last ? 'single' : ($dayIso === $first ? 'start' : ($dayIso === $last ? 'end' : 'middle'));
 
-        $movable = $event->capabilities->canMove && $guard->writeDenial($def, $ctx, CalendarAction::Move, $event->reference->sourceKey) === null;
-        $resizable = ! $event->allDay && $event->capabilities->canResize && $guard->writeDenial($def, $ctx, CalendarAction::Resize, $event->reference->sourceKey) === null;
+        $recurrenceAllowed = ! $event->isRecurring || $def->settings->feature('recurrence');
+        $movable = $this->movingEnabled && $recurrenceAllowed && $event->capabilities->canMove && $guard->writeDenial($def, $ctx, CalendarAction::Move, $event->reference->sourceKey) === null;
+        $resizable = $this->movingEnabled && $recurrenceAllowed && ! $event->allDay && $event->capabilities->canResize && $guard->writeDenial($def, $ctx, CalendarAction::Resize, $event->reference->sourceKey) === null;
 
         return [
             'event' => $event,
@@ -325,6 +436,7 @@ trait LoadsCalendarEvents
             'timeLabel' => $event->allDay ? '' : $labels->time($event->start, $tz, $ctx->locale),
             'timeRange' => $event->allDay ? '' : $labels->time($event->start, $tz, $ctx->locale).' – '.$labels->time($event->end, $tz, $ctx->locale),
             'movable' => $movable,
+            'taskMovable' => $event->capabilities->canMove,
             'resizable' => $resizable,
             'readOnly' => $event->isReadOnly() || (! $movable && ! $resizable && ! $event->capabilities->canEdit),
             'version' => $event->version,
@@ -340,6 +452,11 @@ trait LoadsCalendarEvents
      */
     private function sourceModels(CalendarDefinition $def, array $disabled, ReadResult $read): array
     {
+        $counts = [];
+        foreach ($read->events as $ev) {
+            $k = $ev->reference->sourceKey;
+            $counts[$k] = ($counts[$k] ?? 0) + 1;
+        }
         $out = [];
         foreach ($def->sourceKeys() as $key) {
             $s = $def->source($key);
@@ -351,6 +468,7 @@ trait LoadsCalendarEvents
                 'key' => $key, 'label' => $s->label, 'enabled' => ! in_array($key, $disabled, true), 'readOnly' => $s->readOnly,
                 'colorClass' => AllowedCssToken::cssClass($color), 'colorStyle' => AllowedCssToken::style($color),
                 'failed' => ($read->sources[$key]['error'] ?? null) !== null,
+                'count' => $counts[$key] ?? 0,
             ];
         }
 
@@ -359,14 +477,65 @@ trait LoadsCalendarEvents
 
     /**
      * @param  array<string, string>  $active
+     * @param  list<string>  $disabled
      * @return list<array<string, mixed>>
      */
-    private function filterModels(CalendarDefinition $def, array $active): array
+    private function filterModels(CalendarDefinition $def, array $active, array $disabled = [], ?ReadResult $read = null): array
     {
-        return array_map(fn ($f) => [
-            'key' => $f->key(), 'label' => $f->label, 'options' => $f->options, 'selected' => $active[$f->key()] ?? '',
-            'source' => $def->source($f->sourceKey)->label,
-        ], $def->filters);
+        $usable = [];
+        foreach ($def->filters as $f) {
+            if (in_array($f->sourceKey, $disabled, true)) {
+                continue;
+            }
+            if ($read !== null && ($read->sources[$f->sourceKey]['error'] ?? null) !== null) {
+                continue;
+            }
+            $usable[] = $f;
+        }
+
+        $byField = [];
+        foreach ($usable as $f) {
+            $byField[$f->field][] = $f;
+        }
+
+        $out = [];
+        foreach ($byField as $field => $items) {
+            if (count($items) === 1) {
+                $f = $items[0];
+                $out[] = [
+                    'key' => $f->key(),
+                    'label' => $f->label,
+                    'options' => $f->options,
+                    'selected' => $active[$f->key()] ?? $active[$field] ?? '',
+                    'source' => $def->source($f->sourceKey)->label,
+                ];
+
+                continue;
+            }
+
+            $options = [];
+            $selected = $active[$field] ?? '';
+            foreach ($items as $f) {
+                foreach ($f->options as $val => $optLabel) {
+                    if (! isset($options[$val])) {
+                        $options[$val] = $optLabel;
+                    }
+                }
+                if ($selected === '' && isset($active[$f->key()])) {
+                    $selected = $active[$f->key()];
+                }
+            }
+
+            $out[] = [
+                'key' => $field,
+                'label' => $items[0]->label,
+                'options' => $options,
+                'selected' => $selected,
+                'source' => '',
+            ];
+        }
+
+        return $out;
     }
 
     /** @return list<array{key:string,label:string}> */

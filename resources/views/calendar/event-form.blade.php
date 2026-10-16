@@ -10,7 +10,7 @@
             @if (count($writableSources) > 1 && $formMode === 'create')
                 <label class="kw-field">
                     <span class="kw-field__label">{{ $t('form.source') }}</span>
-                    <select class="kw-input" wire:model="formSource">
+                    <select class="kw-input" wire:model.live="formSource">
                         @foreach ($writableSources as $ws)
                             <option value="{{ $ws['key'] }}">{{ Tr::label($ws['label'], $locale) }}</option>
                         @endforeach

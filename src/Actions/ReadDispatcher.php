@@ -98,7 +98,7 @@ final class ReadDispatcher
                         FilterValidator::forSource($sourceKey, $filters),
                         $requestKey,
                     );
-                    $page = $this->fetchPage($provider, $query, $context, $definition, $sourceKey, $version);
+                    $page = $this->fetchPage($provider, $query, $context, $definition, $sourceKey, $version, $wanted);
                     $pageEvents = $page->events;
                     if (count($pageEvents) > $settings->maxEventsPerResponse) {
                         $pageEvents = array_slice($pageEvents, 0, $settings->maxEventsPerResponse);
@@ -138,13 +138,21 @@ final class ReadDispatcher
         return new ReadResult($merged, $anyMore, $truncated, $summary, $requestKey, CursorPaginationMerger::encode($nextCursors));
     }
 
-    private function fetchPage(object $provider, EventQuery $query, CalendarContext $context, CalendarDefinition $definition, string $sourceKey, string $version): EventPage
-    {
+    /** @param list<string> $selectedSources */
+    private function fetchPage(
+        object $provider,
+        EventQuery $query,
+        CalendarContext $context,
+        CalendarDefinition $definition,
+        string $sourceKey,
+        string $version,
+        array $selectedSources = [],
+    ): EventPage {
         $fetch = fn (): EventPage => $provider->fetch($query, $context);
         if (! $this->cache->enabled()) {
             return $fetch();
         }
-        $key = CalendarCacheKey::for($context, $sourceKey, $query, $version);
+        $key = CalendarCacheKey::for($context, $sourceKey, $query, $version, $selectedSources);
 
         $page = $this->cache->remember($key, (int) config('calendar.cache.ttl', 60), $fetch);
 

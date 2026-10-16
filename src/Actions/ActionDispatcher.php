@@ -16,6 +16,7 @@ use Karnoweb\Calendar\Data\CalendarContext;
 use Karnoweb\Calendar\Data\CalendarDefinition;
 use Karnoweb\Calendar\Data\CalendarEventData;
 use Karnoweb\Calendar\Enums\ActionStatus;
+use Karnoweb\Calendar\Events\CalendarEventMutated;
 use Karnoweb\Calendar\Exceptions\CalendarAccessDenied;
 use Karnoweb\Calendar\Exceptions\CalendarNotFound;
 use Karnoweb\Calendar\Exceptions\CalendarRateLimited;
@@ -23,6 +24,7 @@ use Karnoweb\Calendar\Observability\CalendarTelemetry;
 use Karnoweb\Calendar\Security\CalendarAuthorizationGuard;
 use Karnoweb\Calendar\Security\CalendarRateLimitGuard;
 use Karnoweb\Calendar\Security\EventReferenceGuard;
+use Karnoweb\Calendar\Support\CalendarModelRegistry;
 use Throwable;
 
 /**
@@ -104,7 +106,26 @@ final class ActionDispatcher
             /** @var ActionHandler $handler */
             $handler = $this->container->make((string) $definition->handlerClass);
 
-            return $this->telemetry->measure('action', fn () => $handler->execute($command, $context), [
+            return $this->telemetry->measure('action', function () use ($handler, $definition, $command, $context): ActionResult {
+                $result = $handler->execute($command, $context);
+                if (
+                    $result->status === ActionStatus::Unsupported
+                    && $definition->handlerClass !== EloquentActionHandler::class
+                    && $this->container->bound(CalendarModelRegistry::class)
+                    && $this->container->make(CalendarModelRegistry::class)->has($command->targetSourceKey())
+                ) {
+                    return $this->container->make(EloquentActionHandler::class)->execute($command, $context);
+                }
+                if (
+                    $result->status === ActionStatus::Unsupported
+                    && $command->targetSourceKey() === 'google'
+                    && $definition->handlerClass !== \Karnoweb\Calendar\Google\GoogleCalendarHandler::class
+                ) {
+                    return $this->container->make(\Karnoweb\Calendar\Google\GoogleCalendarHandler::class)->execute($command, $context);
+                }
+
+                return $result;
+            }, [
                 'calendar' => $context->calendarKey, 'action' => $command->action->value, 'source' => $command->targetSourceKey(),
             ]);
         } catch (Throwable $e) {
@@ -129,6 +150,11 @@ final class ActionDispatcher
             $this->hooks->afterCommit($command, $result, $context);
         } catch (Throwable $e) {
             $this->telemetry->record('hook.failed', ['calendar' => $context->calendarKey, 'exception' => $e::class]);
+        }
+        try {
+            event(new CalendarEventMutated($definition->key, $command->targetSourceKey(), $command, $result, $context));
+        } catch (Throwable $e) {
+            $this->telemetry->record('event.failed', ['calendar' => $context->calendarKey, 'exception' => $e::class]);
         }
     }
 }

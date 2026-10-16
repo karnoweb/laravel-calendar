@@ -17,6 +17,18 @@ final class PersonalCalendarFactory implements CalendarFactory
 {
     public function make(CalendarContext $context): CalendarDefinition
     {
+        $rawFeatures = (array) session('demo_features', []);
+        $features = [];
+        foreach ($rawFeatures as $k => $v) {
+            if (is_string($k) && array_key_exists($k, CalendarSettings::FEATURES)) {
+                $features[$k] = (bool) $v;
+            }
+        }
+        $theme = (string) session('demo_theme', 'luxe');
+        if (! in_array($theme, ['luxe', 'dark', 'light', 'auto'], true)) {
+            $theme = 'luxe';
+        }
+
         return (new CalendarBuilder)
             ->key($context->calendarKey)
             ->sources(['tasks' => ['provider' => DemoTaskProvider::class, 'label' => 'Tasks', 'color' => 'blue']])
@@ -24,7 +36,7 @@ final class PersonalCalendarFactory implements CalendarFactory
             ->holidays()
             ->actions(DemoTaskHandler::class)
             ->filters([new CalendarFilterData('tasks', 'status', 'Status', ['open' => 'Open', 'done' => 'Done', 'locked' => 'Locked'])])
-            ->settings(new CalendarSettings(styles: ['theme' => 'luxe']))
+            ->settings(new CalendarSettings(features: $features, styles: ['theme' => $theme]))
             ->build();
     }
 }

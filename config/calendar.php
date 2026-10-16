@@ -35,6 +35,12 @@ return [
         'allow_public_calendars' => true,
     ],
 
+    'features' => [
+        // Global switch to allow/disable moving (day & time) and resizing across all calendars.
+        'move' => (bool) env('CALENDAR_ALLOW_MOVE', true),
+        'resize' => (bool) env('CALENDAR_ALLOW_RESIZE', true),
+    ],
+
     'rate_limit' => [
         'enabled' => true,
         'read_per_minute' => 240,

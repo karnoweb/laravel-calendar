@@ -39,7 +39,12 @@ final class DemoTaskProvider extends AbstractDemoProvider
 
     protected function capabilities(DemoTask $task): ActionCapabilities
     {
-        return $task->status === 'locked' ? ActionCapabilities::none() : ActionCapabilities::all();
+        if ($task->status === 'locked') {
+            return ActionCapabilities::none();
+        }
+        $movable = (bool) ($task->movable ?? true);
+
+        return new ActionCapabilities(true, true, true, $movable, $movable);
     }
 
     public function fetch(EventQuery $query, CalendarContext $context): EventPage
@@ -128,8 +133,10 @@ final class DemoTaskProvider extends AbstractDemoProvider
             $end = new DateTimeImmutable($end->setTimezone(new DateTimeZone($s->timezone))->format('Y-m-d').' 00:00:00', $utc);
         }
 
+        $movable = (bool) ($s->movable ?? true);
+
         return new CalendarEventData(
-            $ref, $s->title, $start, $end, (bool) $s->all_day, (string) $s->version, ActionCapabilities::all(),
+            $ref, $s->title, $start, $end, (bool) $s->all_day, (string) $s->version, new ActionCapabilities(true, true, true, $movable, $movable),
             $s->description, $s->location, null, null, null, null, true,
         );
     }

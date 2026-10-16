@@ -11,11 +11,36 @@ export function rootOf(el) {
     return el.closest('[data-kw-calendar]');
 }
 
+export function hostOf(el) {
+    let cur = el && el.closest ? el.closest('[data-kw-calendar]') || el : el;
+    while (cur && cur.getAttribute && !cur.getAttribute('wire:id')) {
+        cur = cur.parentElement;
+    }
+    return cur && cur.getAttribute ? cur : null;
+}
+
 export function wireOf(el) {
-    const host = el.closest('[wire\\:id]');
+    const host = hostOf(el);
     if (!host || !window.Livewire) return null;
     const component = window.Livewire.find(host.getAttribute('wire:id'));
-    return component ? component.$wire ?? component : null;
+    if (!component) return null;
+    const nested = component.$wire;
+    return typeof nested === 'object' && nested !== null ? nested : component;
+}
+
+let suppressClickUntil = 0;
+
+export function suppressClick(ms = 350) {
+    suppressClickUntil = Date.now() + ms;
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+        if (Date.now() < suppressClickUntil) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }
+    }, true);
 }
 
 export function operationId() {

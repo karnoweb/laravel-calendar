@@ -19,7 +19,7 @@ class DemoRecurringSeries extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'all_day' => 'boolean', 'rule' => 'array', 'exceptions' => 'array', 'version' => 'integer'];
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'all_day' => 'boolean', 'movable' => 'boolean', 'rule' => 'array', 'exceptions' => 'array', 'version' => 'integer'];
     }
 
     public function toSeriesData(): RecurrenceSeriesData

@@ -34,6 +34,7 @@ final readonly class CreateEventInput
         public string $timezone,
         public ?RecurrenceRuleData $recurrence = null,
         public array $extra = [],
+        public bool $movable = true,
     ) {}
 
     public static function fromCommand(ActionCommand $command, string $fallbackTimezone = 'UTC'): self
@@ -95,6 +96,10 @@ final readonly class CreateEventInput
             throw new InvalidActionPayload($errors);
         }
 
+        $movable = array_key_exists('movable', $payload)
+            ? (bool) $payload['movable']
+            : (array_key_exists('movable', $extra) ? (bool) $extra['movable'] : true);
+
         return new self(
             $title,
             self::nullable($payload['description'] ?? null, true),
@@ -107,6 +112,7 @@ final readonly class CreateEventInput
             $timezone,
             $recurrence,
             $extra,
+            $movable,
         );
     }
 
@@ -152,6 +158,7 @@ final readonly class CreateEventInput
             'start' => $this->allDay ? $this->start->format('Y-m-d') : $this->start->setTimezone($utc)->format('c'),
             'end' => $this->allDay ? $this->end->format('Y-m-d') : $this->end->setTimezone($utc)->format('c'),
             'timezone' => $this->timezone, 'recurrence' => $this->recurrence?->toArray(), 'extra' => $this->extra,
+            'movable' => $this->movable,
         ];
     }
 }

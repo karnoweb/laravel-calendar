@@ -2,6 +2,7 @@
 @php
     use Karnoweb\Calendar\Support\CalendarTranslations as Tr;
     $e = $card['event'];
+    $taskMovable = $card['taskMovable'] ?? $card['movable'];
 @endphp
 <div class="kw-modal kw-modal--drawer" data-kw-modal wire:keydown.escape="closeDetails">
     <div class="kw-modal__backdrop" wire:click="closeDetails"></div>
@@ -33,6 +34,55 @@
                     <dd><a href="{{ $e->url }}" rel="noopener noreferrer nofollow" target="_blank">{{ $t('details.open_link') }}</a></dd>
                 @endif
             </dl>
+
+            @if (! $card['source']->readOnly)
+                <div class="kw-drawer__section">
+                    <div class="kw-drawer__row">
+                        <div>
+                            <div class="kw-drawer__section-title">{{ $t('details.movable_label') }}</div>
+                            <span class="kw-badge @if ($taskMovable) kw-badge--ok @else kw-badge--locked @endif">
+                                {{ $taskMovable ? $t('details.movable_on') : $t('details.movable_off') }}
+                            </span>
+                        </div>
+                        @if ($card['canToggleMovable'] ?? false)
+                            <button
+                                type="button"
+                                class="kw-btn kw-btn--sm"
+                                data-kw-toggle-task-movable
+                                wire:click="toggleEventMovable('{{ $card['ref'] }}', '{{ $card['version'] }}')"
+                            >
+                                {{ $taskMovable ? $t('details.lock_move') : $t('details.unlock_move') }}
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            @if ($card['movable'])
+                <div class="kw-drawer__section">
+                    <div class="kw-drawer__section-title">{{ $t('details.quick_move') }}</div>
+                    <div class="kw-quick-move">
+                        <label class="kw-field">
+                            <span class="kw-field__label">{{ $t('form.start_date') }}</span>
+                            <input type="text" class="kw-input kw-input--mono" dir="ltr" placeholder="YYYY/MM/DD" wire:model="quickMoveDate">
+                        </label>
+                        @if (! $e->allDay)
+                            <label class="kw-field">
+                                <span class="kw-field__label">{{ $t('form.start_time') }}</span>
+                                <input type="text" class="kw-input kw-input--mono" dir="ltr" placeholder="HH:MM" wire:model="quickMoveTime">
+                            </label>
+                        @endif
+                        <button
+                            type="button"
+                            class="kw-btn kw-btn--primary kw-quick-move__btn"
+                            data-kw-quick-move
+                            wire:click="quickMove('{{ $card['ref'] }}', '{{ $card['version'] }}')"
+                        >
+                            {{ $t('details.apply_move') }}
+                        </button>
+                    </div>
+                </div>
+            @endif
         </div>
         <footer class="kw-drawer__foot">
             @if ($card['canEdit'])

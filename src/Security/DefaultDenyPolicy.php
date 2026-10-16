@@ -39,6 +39,12 @@ final class DefaultDenyPolicy
         if ($definition->handlerClass === null) {
             return ActionStatus::ReadOnly;
         }
+        if ($action === CalendarAction::Move && ! (bool) config('calendar.features.move', true)) {
+            return ActionStatus::Unsupported;
+        }
+        if ($action === CalendarAction::Resize && ! (bool) config('calendar.features.resize', true)) {
+            return ActionStatus::Unsupported;
+        }
         if (! $definition->settings->feature($action->feature())) {
             return ActionStatus::Unsupported;
         }

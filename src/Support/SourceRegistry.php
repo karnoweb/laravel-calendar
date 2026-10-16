@@ -8,6 +8,7 @@ use Illuminate\Contracts\Container\Container;
 use Karnoweb\Calendar\Contracts\EventProvider;
 use Karnoweb\Calendar\Data\CalendarDefinition;
 use Karnoweb\Calendar\Exceptions\CalendarAccessDenied;
+use Karnoweb\Calendar\Providers\EloquentEventProvider;
 
 /**
  * Resolves providers for ONE definition. Providers are built fresh from the host container, and an
@@ -34,6 +35,11 @@ final class SourceRegistry
             throw new CalendarAccessDenied('Unknown calendar source.');
         }
 
-        return $this->container->make($this->definition->sources[$sourceKey]);
+        $class = $this->definition->sources[$sourceKey];
+        if (is_a($class, EloquentEventProvider::class, true)) {
+            return $this->container->make($class, ['sourceKey' => $sourceKey]);
+        }
+
+        return $this->container->make($class);
     }
 }

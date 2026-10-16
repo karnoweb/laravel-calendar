@@ -25,7 +25,7 @@ use Livewire\Component;
  * Definitions, contexts, providers and handlers are rebuilt from the host container on every
  * request and never stored in component state.
  */
-final class Calendar extends Component
+class Calendar extends Component
 {
     use HandlesCalendarActions;
     use HandlesCalendarForms;
@@ -113,6 +113,16 @@ final class Calendar extends Component
     /** '', 'conflict' or 'unknown' */
     public string $outcomeState = '';
 
+    public bool $movingEnabled = true;
+
+    public ?bool $confirmMoveOverride = null;
+
+    public bool $sideOpen = true;
+
+    public string $quickMoveDate = '';
+
+    public string $quickMoveTime = '';
+
     protected ?ResolvedCalendar $resolvedCache = null;
 
     protected bool $accessDenied = false;
@@ -135,6 +145,7 @@ final class Calendar extends Component
             'search' => $cfg('q'),
             'disabledSources' => ['as' => $p.'off', 'history' => true, 'except' => []],
             'filters' => ['as' => $p.'f', 'history' => true, 'except' => []],
+            'sideOpen' => ['as' => $p.'panel', 'history' => true, 'except' => true],
         ];
     }
 
@@ -156,6 +167,8 @@ final class Calendar extends Component
         ?string $locale = null,
         ?string $defaultView = null,
         ?string $system = null,
+        ?bool $movable = null,
+        ?int $agendaLimit = null,
     ): void {
         if (! preg_match('/^[a-z][a-z0-9._-]{1,79}$/', $calendarKey)) {
             abort(404);
@@ -166,7 +179,40 @@ final class Calendar extends Component
         $this->calendarKey = $calendarKey;
         $this->urlSync = $urlSync;
         $this->urlPrefix = $urlPrefix;
-        $this->embed = EmbedOptions::make($layout, $views, $systems, $sources, $presetFilters, $locale, $defaultView, $system)->toArray();
+        if ($movable === false) {
+            $this->movingEnabled = false;
+        }
+        $this->embed = EmbedOptions::make($layout, $views, $systems, $sources, $presetFilters, $locale, $defaultView, $system, $movable, $agendaLimit)->toArray();
+    }
+
+    public function toggleMoving(): void
+    {
+        $this->guarded(function (ResolvedCalendar $r): void {
+            if (! $r->definition->settings->feature('move') || ! (bool) config('calendar.features.move', true)) {
+                $this->movingEnabled = false;
+
+                return;
+            }
+            $this->movingEnabled = ! $this->movingEnabled;
+        });
+    }
+
+    public function toggleConfirmMove(): void
+    {
+        $this->guarded(function (ResolvedCalendar $r): void {
+            $current = $this->confirmMoveOverride ?? $r->definition->settings->feature('confirmMove');
+            $this->confirmMoveOverride = ! $current;
+        });
+    }
+
+    public function toggleSidePanel(): void
+    {
+        $this->guarded(function (ResolvedCalendar $r): void {
+            if (! $r->definition->settings->feature('filters')) {
+                return;
+            }
+            $this->sideOpen = ! $this->sideOpen;
+        });
     }
 
     protected function embedOptions(): EmbedOptions
@@ -214,10 +260,18 @@ final class Calendar extends Component
     }
 
     #[On('kw-calendar-refresh')]
-    public function refreshNow(): void
+    public function refreshNow(bool $syncSettings = false): void
     {
-        // Intentionally empty: re-rendering re-reads authorised data from the providers.
+        // Intentionally empty by default: re-rendering re-reads authorised data from the providers.
         $this->outcomeState = '';
+        if ($syncSettings) {
+            $this->closeAllDialogs();
+            $this->toast = null;
+            $this->guarded(function (ResolvedCalendar $r): void {
+                $this->movingEnabled = $r->definition->settings->feature('move') && (bool) config('calendar.features.move', true);
+                $this->confirmMoveOverride = null;
+            });
+        }
     }
 
     public function render(): View

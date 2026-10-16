@@ -27,6 +27,7 @@ use Karnoweb\Calendar\Providers\DenyAnonymousScopeResolver;
 use Karnoweb\Calendar\Providers\NullCalendarObserver;
 use Karnoweb\Calendar\Providers\SessionPreferenceStore;
 use Karnoweb\Calendar\Support\CalendarManager;
+use Karnoweb\Calendar\Support\CalendarModelRegistry;
 use Karnoweb\Calendar\Support\CalendarRegistry;
 use Livewire\Livewire;
 
@@ -36,8 +37,9 @@ final class CalendarServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/calendar.php', 'calendar');
 
-        // Registry/manager hold only the allowlist of factory CLASS names, never user state.
+        // Registry/manager hold only the allowlist of factory/model CLASS names, never user state.
         $this->app->singleton(CalendarRegistry::class);
+        $this->app->singleton(CalendarModelRegistry::class);
         $this->app->singleton(CalendarManager::class);
         $this->app->singleton(CalendarSystemRegistry::class);
 

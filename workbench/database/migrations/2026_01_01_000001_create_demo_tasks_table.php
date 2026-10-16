@@ -24,6 +24,7 @@ return new class extends Migration
             $table->dateTime('starts_at'); // UTC
             $table->dateTime('ends_at'); // UTC
             $table->boolean('all_day')->default(false);
+            $table->boolean('movable')->default(true);
             $table->string('timezone', 64)->default('UTC');
             $table->unsignedInteger('version')->default(1);
             $table->timestamps();

@@ -19,7 +19,15 @@ final class PackageBootTest extends FeatureTestCase
             $this->assertStringNotContainsString('calendar', $uri, 'package must not register calendar routes');
         }
         $this->assertSame([], glob(dirname(__DIR__, 2).'/database/migrations/*') ?: []);
-        $this->assertSame([], glob(dirname(__DIR__, 2).'/src/**/*Model*.php') ?: []);
+        $this->assertSame([], glob(dirname(__DIR__, 2).'/src/Models/*.php') ?: []);
+        foreach (glob(dirname(__DIR__, 2).'/src/*/*.php') ?: [] as $file) {
+            $content = (string) file_get_contents($file);
+            $this->assertDoesNotMatchRegularExpression(
+                '/class\s+\w+\s+extends\s+(Model|\\\\?Illuminate\\\\Database\\\\Eloquent\\\\Model)\b/',
+                $content,
+                "Package src file [{$file}] must not define an Eloquent Model.",
+            );
+        }
     }
 
     public function test_component_renders_month_with_event(): void

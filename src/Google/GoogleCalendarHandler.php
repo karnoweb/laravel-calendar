@@ -34,10 +34,10 @@ class GoogleCalendarHandler implements ActionHandler
 
     public function execute(ActionCommand $command, CalendarContext $context): ActionResult
     {
+        $token = $this->tokens->accessToken($context);
         if (! (bool) config('calendar.google.writable', false)) {
             return ActionResult::failure(ActionStatus::ReadOnly);
         }
-        $token = $this->tokens->accessToken($context);
         if ($token === null || $token === '') {
             return ActionResult::failure(ActionStatus::Forbidden);
         }

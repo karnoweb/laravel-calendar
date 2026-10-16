@@ -66,14 +66,139 @@ trait HandlesCalendarActions
         });
     }
 
+    public function openDetails(string $ref): void
+    {
+        $this->openEvent($ref);
+    }
+
     public function openEvent(string $ref): void
     {
         if (EventReferenceCodec::tryDecode($ref) === null) {
             return;
         }
-        $this->guarded(function () use ($ref): void {
-            $this->detailsRef = $ref; // verified (authorised re-fetch) while rendering
+        $this->guarded(function (ResolvedCalendar $r) use ($ref): void {
             $this->toast = null;
+            $decoded = EventReferenceCodec::tryDecode($ref);
+            if ($decoded === null) {
+                $this->detailsRef = null;
+
+                return;
+            }
+            try {
+                $event = app(EventReferenceGuard::class)->resolve($r->definition, $r->context, $decoded);
+                $this->detailsRef = $ref;
+                $engine = app(\Karnoweb\Calendar\Calendar\CalendarEngine::class);
+                $state = $this->navState($r);
+                $system = $engine->system($state);
+                $firstIso = $event->firstDate($r->context->timezone);
+                [$y, $m, $d] = $system->fromIso($firstIso);
+                $this->quickMoveDate = sprintf('%04d/%02d/%02d', $y, $m, $d);
+                $this->quickMoveTime = $event->allDay ? '' : $event->startAt($r->context->timezone)->format('H:i');
+            } catch (CalendarAccessDenied) {
+                $this->detailsRef = null;
+                $this->quickMoveDate = '';
+                $this->quickMoveTime = '';
+                $this->notify('error', (string) trans('calendar::calendar.messages.forbidden'));
+            } catch (CalendarNotFound) {
+                $this->detailsRef = null;
+                $this->quickMoveDate = '';
+                $this->quickMoveTime = '';
+                $this->notify('error', (string) trans('calendar::calendar.messages.not_found'));
+            } catch (\Throwable) {
+                $this->detailsRef = $ref;
+                $this->quickMoveDate = '';
+                $this->quickMoveTime = '';
+            }
+        });
+    }
+
+    public function quickMove(string $ref, ?string $version = null): void
+    {
+        $this->guarded(function (ResolvedCalendar $r) use ($ref, $version): void {
+            $this->toast = null;
+            $event = $this->loadEvent($r, $ref);
+            if ($event === null || ! $this->mayAct($r, $event, CalendarAction::Move)) {
+                return;
+            }
+            $engine = app(\Karnoweb\Calendar\Calendar\CalendarEngine::class);
+            $state = $this->navState($r);
+            $system = $engine->system($state);
+            $rawDate = trim($this->quickMoveDate);
+            try {
+                [$y, $m, $d] = CalendarInputNormalizer::parseDate($rawDate);
+                $iso = ($state->system === 'jalali' && $y >= 1900)
+                    ? (CalendarInputNormalizer::tryGregorianDate($rawDate) ?? $system->toIso($y, $m, $d))
+                    : $system->toIso($y, $m, $d);
+            } catch (InvalidCalendarDate) {
+                $this->notify('error', (string) trans('calendar::calendar.validation.date_invalid'));
+
+                return;
+            }
+            $minute = null;
+            if (! $event->allDay && trim($this->quickMoveTime) !== '') {
+                try {
+                    [$h, $i] = CalendarInputNormalizer::parseTime($this->quickMoveTime);
+                    $minute = $h * 60 + $i;
+                } catch (InvalidCalendarDate) {
+                    $this->notify('error', (string) trans('calendar::calendar.validation.time_invalid'));
+
+                    return;
+                }
+            }
+            $this->requestMove($ref, $iso, $minute, CalendarOperationId::generate(), $version ?? $event->version);
+            if ($this->pending !== null) {
+                $this->confirmPending();
+            }
+        });
+    }
+
+    public function toggleEventMovable(string $ref, ?string $version = null): void
+    {
+        $this->guarded(function (ResolvedCalendar $r) use ($ref, $version): void {
+            $this->toast = null;
+            $event = $this->loadEvent($r, $ref);
+            if ($event === null) {
+                return;
+            }
+            $action = $event->isRecurring ? CalendarAction::SeriesUpdate : CalendarAction::Update;
+            if (! $this->mayAct($r, $event, $action)) {
+                return;
+            }
+            $reference = EventReferenceCodec::tryDecode($ref);
+            if ($reference === null) {
+                return;
+            }
+            $utc = new \DateTimeZone('UTC');
+            $tz = $r->context->timezone;
+            $newMovable = ! $event->capabilities->canMove;
+            $payload = [
+                'title' => $event->title,
+                'description' => $event->description,
+                'location' => $event->location,
+                'category' => $event->category,
+                'status' => $event->status,
+                'allDay' => $event->allDay,
+                'movable' => $newMovable,
+                'start' => $event->allDay ? $event->start->format('Y-m-d') : $event->start->setTimezone($utc)->format('c'),
+                'end' => $event->allDay ? $event->end->format('Y-m-d') : $event->end->setTimezone($utc)->format('c'),
+                'timezone' => $tz,
+                'recurrence' => null,
+            ];
+            $command = new ActionCommand(
+                CalendarOperationId::generate(),
+                $action,
+                $reference,
+                $payload,
+                $version ?? $event->version,
+                $reference->sourceKey,
+                $event->isRecurring ? RecurrenceScope::All : null,
+            );
+            $outcome = app(CalendarMutationCoordinator::class)->run($r->definition, $r->context, $command);
+            $keepDetails = $this->detailsRef;
+            $this->applyOutcome($outcome, $command->operationId);
+            if ($outcome->isSuccess()) {
+                $this->detailsRef = $keepDetails;
+            }
         });
     }
 
@@ -195,6 +320,9 @@ trait HandlesCalendarActions
     protected function mayAct(ResolvedCalendar $r, CalendarEventData $event, CalendarAction $action): bool
     {
         $denial = app(CalendarAuthorizationGuard::class)->writeDenial($r->definition, $r->context, $action, $event->reference->sourceKey);
+        if ($denial === null && in_array($action, [CalendarAction::Move, CalendarAction::Resize], true) && ! $this->movingEnabled) {
+            $denial = ActionStatus::Unsupported;
+        }
         if ($denial === null && ! $event->capabilities->allows($action->capability())) {
             $denial = ActionStatus::ReadOnly;
         }
@@ -239,7 +367,10 @@ trait HandlesCalendarActions
                 default => 'delete',
             },
         ];
-        if (app(CalendarConfirmationPolicy::class)->requiresConfirmation($r->definition, $action)) {
+        $requiresConfirm = in_array($action, [CalendarAction::Move, CalendarAction::Resize], true) && $this->confirmMoveOverride !== null
+            ? $this->confirmMoveOverride
+            : app(CalendarConfirmationPolicy::class)->requiresConfirmation($r->definition, $action);
+        if ($requiresConfirm) {
             $this->pending = $pending;
 
             return;

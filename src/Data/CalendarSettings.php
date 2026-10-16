@@ -137,7 +137,7 @@ final readonly class CalendarSettings
      * @param  list<CalendarView>|null  $views
      * @param  list<CalendarSystem>|null  $systems
      */
-    public function restrict(?array $views = null, ?array $systems = null, ?CalendarView $defaultView = null, ?CalendarSystem $system = null): self
+    public function restrict(?array $views = null, ?array $systems = null, ?CalendarView $defaultView = null, ?CalendarSystem $system = null, ?bool $movable = null): self
     {
         $v = $views === null ? $this->enabledViews : array_values(array_filter($views, fn (CalendarView $x) => $this->viewEnabled($x)));
         $s = $systems === null ? $this->enabledSystems : array_values(array_filter($systems, fn (CalendarSystem $x) => $this->systemEnabled($x)));
@@ -152,8 +152,13 @@ final readonly class CalendarSettings
         if (count($s) === 1) {
             $chosen = $s[0];
         }
+        $features = $this->features;
+        if ($movable === false) {
+            $features['move'] = false;
+            $features['resize'] = false;
+        }
 
-        return new self($default, $chosen, $this->maxEventsPerResponse, $this->firstWeekday, $this->timezonePolicy, $this->features, $this->limits, $this->styles, $this->urlSync, $this->allowAnonymousRead, $this->requireOneSource, $v, $s);
+        return new self($default, $chosen, $this->maxEventsPerResponse, $this->firstWeekday, $this->timezonePolicy, $features, $this->limits, $this->styles, $this->urlSync, $this->allowAnonymousRead, $this->requireOneSource, $v, $s);
     }
 
     public function feature(string $name): bool
