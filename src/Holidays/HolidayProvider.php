@@ -6,6 +6,7 @@ namespace Karnoweb\Calendar\Holidays;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Karnoweb\Calendar\Calendar\IsoDate;
 use Karnoweb\Calendar\Contracts\EventProvider;
 use Karnoweb\Calendar\Data\ActionCapabilities;
 use Karnoweb\Calendar\Data\CalendarContext;
@@ -14,7 +15,6 @@ use Karnoweb\Calendar\Data\DateRange;
 use Karnoweb\Calendar\Data\EventPage;
 use Karnoweb\Calendar\Data\EventQuery;
 use Karnoweb\Calendar\Data\EventReference;
-use Karnoweb\Calendar\Support\IsoDate;
 use Morilog\Jalali\CalendarUtils;
 
 /**

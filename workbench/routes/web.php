@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Karnoweb\Calendar\Data\CalendarSettings;
+use Workbench\Database\Seeders\CalendarDemoSeeder;
 
 // Host routes (the calendar package registers none).
 Route::middleware('web')->group(function (): void {
@@ -40,7 +42,7 @@ Route::middleware('web')->group(function (): void {
             $request->session()->put(['demo_actor' => '11', 'demo_tenant' => '101']);
         }
         if (! $request->session()->has('demo_features')) {
-            $request->session()->put('demo_features', array_replace(\Karnoweb\Calendar\Data\CalendarSettings::FEATURES, ['confirmMove' => false]));
+            $request->session()->put('demo_features', array_replace(CalendarSettings::FEATURES, ['confirmMove' => false]));
         }
         if ($locale = $request->query('locale')) {
             abort_unless(in_array($locale, ['en', 'fa'], true), 422);
@@ -58,7 +60,7 @@ Route::middleware('web')->group(function (): void {
             $request->session()->put('demo_google', 'fake');
         }
         if (! $request->session()->has('demo_features')) {
-            $request->session()->put('demo_features', array_replace(\Karnoweb\Calendar\Data\CalendarSettings::FEATURES, ['confirmMove' => false]));
+            $request->session()->put('demo_features', array_replace(CalendarSettings::FEATURES, ['confirmMove' => false]));
         }
         if ($locale = $request->query('locale')) {
             abort_unless(in_array($locale, ['en', 'fa'], true), 422);
@@ -85,6 +87,22 @@ Route::middleware('web')->group(function (): void {
 
         return view('workbench::calendar.scoped', ['calendarKey' => 'tasks_only', 'title' => 'تقویم وظایف (فقط Tasks)']);
     });
+    foreach ([
+        'my.calendar' => 'My calendar',
+        'education.calendar' => 'Education calendar',
+        'crm.calendar' => 'CRM calendar',
+        'delivery.calendar' => 'Delivery calendar',
+        'overview.calendar' => 'Overview calendar',
+    ] as $key => $title) {
+        Route::get('/calendar/'.str_replace('.', '-', $key), function (Request $request) use ($key, $title) {
+            if (! $request->session()->has('demo_actor')) {
+                $request->session()->put(['demo_actor' => '11', 'demo_tenant' => '101']);
+            }
+
+            return view('workbench::calendar.scoped', ['calendarKey' => $key, 'title' => $title]);
+        });
+    }
+
     Route::get('/calendar/classes', function (Request $request) {
         if (! $request->session()->has('demo_actor')) {
             $request->session()->put(['demo_actor' => '11', 'demo_tenant' => '101']);
@@ -94,7 +112,7 @@ Route::middleware('web')->group(function (): void {
     });
 
     Route::match(['get', 'post'], '/workbench/settings', function (Request $request) {
-        $defaults = \Karnoweb\Calendar\Data\CalendarSettings::FEATURES;
+        $defaults = CalendarSettings::FEATURES;
         $features = array_replace($defaults, (array) $request->session()->get('demo_features', []));
 
         $action = (string) $request->input('action', '');
@@ -103,7 +121,7 @@ Route::middleware('web')->group(function (): void {
             $request->session()->put('demo_features', $features);
             $request->session()->put('demo_theme', 'luxe');
         } elseif ($action === 'reseed') {
-            app(\Workbench\Database\Seeders\CalendarDemoSeeder::class)->run();
+            app(CalendarDemoSeeder::class)->run();
         }
 
         if ($request->has('feature')) {

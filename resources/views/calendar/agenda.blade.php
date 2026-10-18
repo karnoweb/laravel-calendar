@@ -23,7 +23,7 @@
                     <strong class="kw-agenda__day">{{ $item['dayNum'] }}</strong>
                 </div>
 
-                <div class="kw-agenda__icon" data-kw-part="agenda-icon" aria-hidden="true">
+                <div class="kw-agenda__icon" data-kw-part="agenda-icon" hidden aria-hidden="true">
                     @if(($ev['source']->key ?? '') === 'holidays')
                         <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3v14M4 4h10l-2 3.5L14 11H4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     @elseif(($ev['source']->key ?? '') === 'google')

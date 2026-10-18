@@ -16,10 +16,12 @@ use Karnoweb\Calendar\Contracts\CalendarCache;
 use Karnoweb\Calendar\Contracts\CalendarFormResolver;
 use Karnoweb\Calendar\Contracts\CalendarObserver;
 use Karnoweb\Calendar\Contracts\CalendarOperationHooks;
+use Karnoweb\Calendar\Contracts\GoogleAccessTokenResolver;
 use Karnoweb\Calendar\Contracts\PreferenceStore;
 use Karnoweb\Calendar\Contracts\ScopeResolver;
 use Karnoweb\Calendar\Contracts\TimezoneResolver;
 use Karnoweb\Calendar\Forms\DefaultCalendarFormResolver;
+use Karnoweb\Calendar\Google\NullGoogleAccessTokenResolver;
 use Karnoweb\Calendar\Observability\CalendarTelemetry;
 use Karnoweb\Calendar\Observability\NullCalendarTelemetry;
 use Karnoweb\Calendar\Providers\AppTimezoneResolver;
@@ -29,6 +31,7 @@ use Karnoweb\Calendar\Providers\SessionPreferenceStore;
 use Karnoweb\Calendar\Support\CalendarManager;
 use Karnoweb\Calendar\Support\CalendarModelRegistry;
 use Karnoweb\Calendar\Support\CalendarRegistry;
+use Karnoweb\Calendar\Support\EventDetailsRegistry;
 use Livewire\Livewire;
 
 final class CalendarServiceProvider extends ServiceProvider
@@ -39,6 +42,7 @@ final class CalendarServiceProvider extends ServiceProvider
 
         // Registry/manager hold only the allowlist of factory/model CLASS names, never user state.
         $this->app->singleton(CalendarRegistry::class);
+        $this->app->singleton(EventDetailsRegistry::class);
         $this->app->singleton(CalendarModelRegistry::class);
         $this->app->singleton(CalendarManager::class);
         $this->app->singleton(CalendarSystemRegistry::class);
@@ -46,7 +50,7 @@ final class CalendarServiceProvider extends ServiceProvider
         // Fail-closed defaults; hosts rebind these.
         $this->app->bind(ScopeResolver::class, DenyAnonymousScopeResolver::class);
         $this->app->bind(TimezoneResolver::class, AppTimezoneResolver::class);
-        $this->app->bindIf(\Karnoweb\Calendar\Contracts\GoogleAccessTokenResolver::class, \Karnoweb\Calendar\Google\NullGoogleAccessTokenResolver::class);
+        $this->app->bindIf(GoogleAccessTokenResolver::class, NullGoogleAccessTokenResolver::class);
         $this->app->bind(CalendarOperationHooks::class, NullCalendarOperationHooks::class);
         $this->app->bind(ActionExecutionJournal::class, NullActionExecutionJournal::class);
         $this->app->bind(PreferenceStore::class, SessionPreferenceStore::class);

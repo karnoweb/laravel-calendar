@@ -23,6 +23,8 @@ class Meeting extends Model
             'ends_at' => 'datetime',
             'all_day' => 'boolean',
             'movable' => 'boolean',
+            'rule' => 'array',
+            'exceptions' => 'array',
             'version' => 'integer',
         ];
     }
@@ -38,6 +40,8 @@ class Meeting extends Model
             defaultDurationMinutes: 60,
             scopeField: 'scope_key',
             searchableFields: ['title', 'location', 'description'],
+            recurrenceRuleField: 'rule',
+            recurrenceExceptionsField: 'exceptions',
             statusOptions: [
                 'scheduled' => 'Scheduled',
                 'completed' => 'Completed',

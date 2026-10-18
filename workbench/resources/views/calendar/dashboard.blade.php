@@ -28,10 +28,11 @@
         html.light .card{background:#ffffff;border-color:rgba(15,23,42,.08);box-shadow:0 10px 30px -10px rgba(15,23,42,.07)}
         .card>[wire\:id]{flex:1 1 auto;min-height:0;min-width:0}
         .a{grid-column:span 9;grid-row:2/4}
+        .b,.c{height:auto;align-self:start}
         .b{grid-column:span 3;grid-row:2/3}
         .c{grid-column:span 3;grid-row:3/4}
         @media (max-width:1100px){.a{grid-column:span 8}.b,.c{grid-column:span 4}}
-        @media (max-width:900px){.a,.b,.c{grid-column:1/-1;grid-row:auto}.dash{grid-template-rows:auto;overflow:auto;height:auto;min-height:100dvh}.card{height:72dvh}html,body{overflow:auto}}
+        @media (max-width:900px){.a,.b,.c{grid-column:1/-1;grid-row:auto}.dash{grid-template-rows:auto;overflow:auto;height:auto;min-height:100dvh}.a{height:72dvh}.b,.c{height:auto}html,body{overflow:auto}}
     </style>@livewireStyles
 </head>
 <body>

@@ -9,6 +9,7 @@ use Karnoweb\Calendar\Actions\CalendarConfirmationPolicy;
 use Karnoweb\Calendar\Actions\CalendarMutationCoordinator;
 use Karnoweb\Calendar\Actions\CalendarOperationId;
 use Karnoweb\Calendar\Actions\MutationOutcome;
+use Karnoweb\Calendar\Calendar\CalendarEngine;
 use Karnoweb\Calendar\Data\ActionCommand;
 use Karnoweb\Calendar\Data\CalendarEventData;
 use Karnoweb\Calendar\Enums\ActionStatus;
@@ -73,6 +74,7 @@ trait HandlesCalendarActions
 
     public function openEvent(string $ref): void
     {
+        $this->detailsSectionPages = [];
         if (EventReferenceCodec::tryDecode($ref) === null) {
             return;
         }
@@ -87,7 +89,7 @@ trait HandlesCalendarActions
             try {
                 $event = app(EventReferenceGuard::class)->resolve($r->definition, $r->context, $decoded);
                 $this->detailsRef = $ref;
-                $engine = app(\Karnoweb\Calendar\Calendar\CalendarEngine::class);
+                $engine = app(CalendarEngine::class);
                 $state = $this->navState($r);
                 $system = $engine->system($state);
                 $firstIso = $event->firstDate($r->context->timezone);
@@ -120,7 +122,7 @@ trait HandlesCalendarActions
             if ($event === null || ! $this->mayAct($r, $event, CalendarAction::Move)) {
                 return;
             }
-            $engine = app(\Karnoweb\Calendar\Calendar\CalendarEngine::class);
+            $engine = app(CalendarEngine::class);
             $state = $this->navState($r);
             $system = $engine->system($state);
             $rawDate = trim($this->quickMoveDate);

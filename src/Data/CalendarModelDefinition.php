@@ -20,9 +20,6 @@ final class CalendarModelDefinition
 
     /**
      * @param  string|array<string, string>|null  $label
-     * @param  string|Closure  $titleField
-     * @param  string|Closure|null  $colorField
-     * @param  string|Closure|null  $urlField
      * @param  list<string>  $with
      * @param  list<string>  $searchableFields
      * @param  array<string, string>  $statusOptions
@@ -37,6 +34,7 @@ final class CalendarModelDefinition
      * @param  class-string<EventProvider>|null  $providerClass
      * @param  class-string<ActionHandler>|null  $handlerClass
      * @param  array<string, array{label:string, icon?:string, color?:string, handler?:Closure}>  $customActions
+     * @param  list<array{field:string, label:string|array<string, string>}>  $displayFields
      */
     public function __construct(
         public ?string $sourceKey = null,
@@ -82,6 +80,9 @@ final class CalendarModelDefinition
         public ?string $providerClass = null,
         public ?string $handlerClass = null,
         public array $customActions = [],
+        public array $displayFields = [],
+        public ?string $recurrenceRuleField = null,
+        public ?string $recurrenceExceptionsField = null,
     ) {
         if ($this->sourceKey !== null && ! preg_match('/^[a-z][a-z0-9._-]{1,79}$/', $this->sourceKey)) {
             throw new InvalidArgumentException("Invalid model calendar source key [{$this->sourceKey}].");
@@ -100,6 +101,19 @@ final class CalendarModelDefinition
         }
         if ($this->handlerClass !== null && ! is_subclass_of($this->handlerClass, ActionHandler::class)) {
             throw new InvalidArgumentException("Custom handlerClass [{$this->handlerClass}] must implement ActionHandler.");
+        }
+        if (count($this->displayFields) > 12) {
+            throw new InvalidArgumentException('A calendar model may declare at most 12 display fields.');
+        }
+        foreach ($this->displayFields as $row) {
+            $field = $row['field'] ?? null;
+            $label = $row['label'] ?? null;
+            if (! is_string($field) || ! preg_match('/^[A-Za-z_][A-Za-z0-9_]{0,63}$/', $field)) {
+                throw new InvalidArgumentException('Display field names must be plain column identifiers.');
+            }
+            if (! is_string($label) && ! is_array($label)) {
+                throw new InvalidArgumentException("Display field [{$field}] requires a label.");
+            }
         }
 
         $this->capabilities = $this->readOnly
@@ -281,12 +295,41 @@ final class CalendarModelDefinition
         return $clone;
     }
 
+    /**
+     * Extra columns shown in the event drawer. They are read only after the scoped page query.
+     *
+     * @param  list<array{field:string, label:string|array<string, string>}>  $fields
+     */
+    public function displayFields(array $fields): self
+    {
+        $clone = clone $this;
+        $clone->displayFields = array_values($fields);
+        if (count($clone->displayFields) > 12) {
+            throw new InvalidArgumentException('A calendar model may declare at most 12 display fields.');
+        }
+        foreach ($clone->displayFields as $row) {
+            $field = $row['field'] ?? null;
+            if (! is_string($field) || ! preg_match('/^[A-Za-z_][A-Za-z0-9_]{0,63}$/', $field) || (! is_string($row['label'] ?? null) && ! is_array($row['label'] ?? null))) {
+                throw new InvalidArgumentException('Invalid display field declaration.');
+            }
+        }
+
+        return $clone;
+    }
+
     public function writeUsing(Closure $mapper): self
     {
         $clone = clone $this;
         $clone->writeMapper = $mapper;
 
         return $clone;
+    }
+
+    public function persistsRecurrence(): bool
+    {
+        return $this->supportsRecurrence
+            && $this->recurrenceRuleField !== null
+            && $this->recurrenceExceptionsField !== null;
     }
 
     public function hasScopeRule(): bool

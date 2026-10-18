@@ -6,12 +6,14 @@ namespace Karnoweb\Calendar\Livewire\Concerns;
 
 use Karnoweb\Calendar\Actions\ReadDispatcher;
 use Karnoweb\Calendar\Calendar\CalendarEngine;
+use Karnoweb\Calendar\Calendar\CalendarSystemRegistry;
 use Karnoweb\Calendar\Calendar\DateLabelFormatter;
 use Karnoweb\Calendar\Calendar\EventLayoutEngine;
 use Karnoweb\Calendar\Calendar\IsoDate;
 use Karnoweb\Calendar\Calendar\MonthSpanPlanner;
 use Karnoweb\Calendar\Contracts\CalendarFormResolver;
 use Karnoweb\Calendar\Data\CalendarContext;
+use Karnoweb\Calendar\Data\CalendarDayData;
 use Karnoweb\Calendar\Data\CalendarDefinition;
 use Karnoweb\Calendar\Data\CalendarEventData;
 use Karnoweb\Calendar\Data\CalendarNavigationState;
@@ -31,6 +33,7 @@ use Karnoweb\Calendar\Security\CalendarInputNormalizer;
 use Karnoweb\Calendar\Security\EventReferenceGuard;
 use Karnoweb\Calendar\Support\CalendarFilterEngine;
 use Karnoweb\Calendar\Support\CalendarTranslations;
+use Karnoweb\Calendar\Support\EventDetailsRegistry;
 use Karnoweb\Calendar\Support\EventReferenceCodec;
 use Karnoweb\Calendar\Support\FilterValidator;
 use Karnoweb\Calendar\Support\ResolvedCalendar;
@@ -162,8 +165,8 @@ trait LoadsCalendarEvents
         $model['digits'] = fn (string|int $v) => $labels->digits($v, $locale);
         $model['dayLabel'] = fn (string $iso) => $labels->dayTitle($system, $iso, $locale);
         $model['weekendDays'] = $system->weekendDays();
-        $altSystem = app(\Karnoweb\Calendar\Calendar\CalendarSystemRegistry::class)->get($state->system === \Karnoweb\Calendar\Enums\CalendarSystem::Jalali ? \Karnoweb\Calendar\Enums\CalendarSystem::Gregorian : \Karnoweb\Calendar\Enums\CalendarSystem::Jalali);
-        $altFa = $locale === 'fa' && $altSystem->system() === \Karnoweb\Calendar\Enums\CalendarSystem::Jalali;
+        $altSystem = app(CalendarSystemRegistry::class)->get($state->system === CalendarSystem::Jalali ? CalendarSystem::Gregorian : CalendarSystem::Jalali);
+        $altFa = $locale === 'fa' && $altSystem->system() === CalendarSystem::Jalali;
         $model['altDay'] = fn (string $iso) => $altFa ? $labels->digits($altSystem->fromIso($iso)[2], $locale) : (string) $altSystem->fromIso($iso)[2];
 
         $firstWeekday = $engine->firstWeekday($state, $settings);
@@ -216,6 +219,7 @@ trait LoadsCalendarEvents
                     }
                     if (isset($spanRefs[$card['ref']])) {
                         $spanCount++;
+
                         continue;
                     }
                     $cellCards[] = $card;
@@ -248,7 +252,7 @@ trait LoadsCalendarEvents
     }
 
     /**
-     * @param  list<\Karnoweb\Calendar\Data\CalendarDayData>  $days
+     * @param  list<CalendarDayData>  $days
      * @return list<array<string, mixed>>
      */
     private function columns(array $days, EventLayoutEngine $layout, string $tz, ReadResult $read, callable $cards): array
@@ -297,9 +301,9 @@ trait LoadsCalendarEvents
     {
         $events = $read->events;
         if (($model['agendaLimit'] ?? 0) > 0) {
-            $today = $model['today'] ?? IsoDate::today();
+            $today = $model['today'] ?? now($tz)->format('Y-m-d');
             $upcoming = array_values(array_filter($events, fn (CalendarEventData $e) => $e->lastDate($tz) >= $today));
-            $events = array_slice($upcoming !== [] ? $upcoming : $events, 0, (int) $model['agendaLimit']);
+            $events = array_slice($upcoming, 0, (int) $model['agendaLimit']);
         }
         $rows = app(ResultWindowManager::class)->rows($events, $def, $system, $tz, $locale);
         $model['listRowsJson'] = json_encode($rows, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -402,9 +406,17 @@ trait LoadsCalendarEvents
         $editAction = $event->isRecurring ? CalendarAction::OccurrenceUpdate : CalendarAction::Update;
         $deleteAction = $event->isRecurring ? CalendarAction::OccurrenceDelete : CalendarAction::Delete;
         $toggleAction = $event->isRecurring ? CalendarAction::SeriesUpdate : CalendarAction::Update;
+        $window = app(CalendarEngine::class)->range($this->navState($resolved), $def->settings);
+        $zone = new \DateTimeZone($tz);
+        $windowStart = $window->startInclusive->setTimezone($zone)->format('Y-m-d');
+        $windowLast = $window->endExclusive->setTimezone($zone)->modify('-1 second')->format('Y-m-d');
 
         return $card + [
             'when' => $when,
+            'multiDay' => $event->isMultiDay($tz),
+            'continuesBefore' => $first < $windowStart,
+            'continuesAfter' => $last > $windowLast,
+            'sections' => app(EventDetailsRegistry::class)->forEvent($event, $ctx, $this->detailsSectionPages),
             'canEdit' => $recurrenceAllowed && $event->capabilities->canEdit && $guard->writeDenial($def, $ctx, $editAction, $ref->sourceKey) === null,
             'canDelete' => $recurrenceAllowed && $event->capabilities->canDelete && $guard->writeDenial($def, $ctx, $deleteAction, $ref->sourceKey) === null,
             'canToggleMovable' => $recurrenceAllowed && ! $card['source']->readOnly && $event->capabilities->canEdit && $guard->writeDenial($def, $ctx, $toggleAction, $ref->sourceKey) === null,

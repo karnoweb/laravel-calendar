@@ -22,6 +22,7 @@ use Karnoweb\Calendar\Data\CreateEventInput;
 use Karnoweb\Calendar\Enums\CalendarSystem;
 use Karnoweb\Calendar\Exceptions\InvalidActionPayload;
 use Karnoweb\Calendar\Exceptions\InvalidCalendarDate;
+use Karnoweb\Calendar\Providers\EloquentEventProvider;
 use Karnoweb\Calendar\Security\CalendarInputNormalizer;
 use Karnoweb\Calendar\Support\CalendarModelRegistry;
 
@@ -54,7 +55,7 @@ final class DefaultCalendarFormResolver implements CalendarFormResolver
             return new CalendarFormSchema(
                 $sourceKey,
                 $modelDef->formFields,
-                $modelDef->supportsRecurrence && $definition->settings->feature('recurrence'),
+                $modelDef->persistsRecurrence() && $definition->settings->feature('recurrence'),
                 $titleKey,
             );
         }
@@ -92,7 +93,7 @@ final class DefaultCalendarFormResolver implements CalendarFormResolver
         $fields[] = ['name' => 'description', 'type' => 'textarea', 'label' => 'calendar::calendar.form.description', 'max' => 5000];
 
         $supportsRecurrence = $modelDef !== null
-            ? ($modelDef->supportsRecurrence && $definition->settings->feature('recurrence'))
+            ? ($modelDef->persistsRecurrence() && $definition->settings->feature('recurrence'))
             : $definition->settings->feature('recurrence');
 
         return new CalendarFormSchema(
@@ -347,8 +348,8 @@ final class DefaultCalendarFormResolver implements CalendarFormResolver
         }
         $def = $this->models->definition($sourceKey);
         $configuredProvider = $definition->sources[$sourceKey] ?? null;
-        $expectedProvider = $def->providerClass ?? \Karnoweb\Calendar\Providers\EloquentEventProvider::class;
-        if ($configuredProvider !== null && $configuredProvider !== $expectedProvider && ! is_a($configuredProvider, \Karnoweb\Calendar\Providers\EloquentEventProvider::class, true)) {
+        $expectedProvider = $def->providerClass ?? EloquentEventProvider::class;
+        if ($configuredProvider !== null && $configuredProvider !== $expectedProvider && ! is_a($configuredProvider, EloquentEventProvider::class, true)) {
             return null;
         }
 

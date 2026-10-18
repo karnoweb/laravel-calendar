@@ -98,8 +98,8 @@ final readonly class EmbedOptions
 
         return new self(
             $layout,
-            $v === [] ? null : $v,
-            $s === [] ? null : $s,
+            $v,
+            $s,
             $normalizedSources,
             array_map('strval', $presetFilters),
             $locale,

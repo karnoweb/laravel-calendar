@@ -78,6 +78,17 @@ class Calendar extends Component
 
     public ?string $detailsRef = null;
 
+    /** @var array<string, int> */
+    #[Locked]
+    public array $detailsSectionPages = [];
+
+    public function detailsSectionPage(string $key, int $page = 1): void
+    {
+        if (preg_match('/^[a-z][a-z0-9_-]{0,39}$/', $key)) {
+            $this->detailsSectionPages[$key] = max(1, min(100, $page));
+        }
+    }
+
     public bool $formOpen = false;
 
     public string $formMode = 'create';

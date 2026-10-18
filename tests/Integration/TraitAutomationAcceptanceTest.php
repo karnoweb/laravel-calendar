@@ -18,10 +18,10 @@ use Karnoweb\Calendar\Cache\CalendarCacheKey;
 use Karnoweb\Calendar\Concerns\HasCalendarEvents;
 use Karnoweb\Calendar\Contracts\CalendarFactory;
 use Karnoweb\Calendar\Contracts\EventProvider;
-use Karnoweb\Calendar\Data\ActionCapabilities;
 use Karnoweb\Calendar\Data\ActionCommand;
 use Karnoweb\Calendar\Data\CalendarContext;
 use Karnoweb\Calendar\Data\CalendarDefinition;
+use Karnoweb\Calendar\Data\CalendarEventData;
 use Karnoweb\Calendar\Data\CalendarModelDefinition;
 use Karnoweb\Calendar\Data\DateRange;
 use Karnoweb\Calendar\Data\EventPage;
@@ -52,8 +52,7 @@ use Workbench\App\Models\Meeting;
 use Workbench\App\Models\Task;
 
 /**
- * Automated verification of all 30 mandatory acceptance scenarios defined in
- * docs/CALENDAR-AGENT-TRAIT-AUTOMATION-IMPLEMENTATION-FA.md.
+ * Acceptance coverage for trait-registered models, source isolation, and writes.
  */
 final class TraitAutomationAcceptanceTest extends WorkbenchTestCase
 {
@@ -1045,6 +1044,7 @@ final class EagerLoadedCourseSessionModel extends Model
     {
         return new CalendarModelDefinition(
             sourceKey: 'course_sessions',
+            allDayField: null,
             label: 'Course Sessions',
             startField: 'starts_at',
             endField: 'ends_at',
@@ -1073,7 +1073,7 @@ final class ThrowingEventProvider implements EventProvider
         throw new RuntimeException('Simulated database outage on broken source.');
     }
 
-    public function find(EventReference $reference, CalendarContext $context): ?\Karnoweb\Calendar\Data\CalendarEventData
+    public function find(EventReference $reference, CalendarContext $context): ?CalendarEventData
     {
         throw new RuntimeException('Simulated database outage on broken source.');
     }

@@ -6,35 +6,103 @@
 @endphp
 <div class="kw-modal kw-modal--drawer modal modal-open" data-kw-modal data-kw-part="details-modal" wire:keydown.escape="closeDetails">
     <div class="kw-modal__backdrop modal-backdrop" data-kw-part="modal-backdrop" data-kw-action="close-details" wire:click="closeDetails"></div>
-    <aside class="kw-drawer modal-box" data-kw-part="details-drawer" role="dialog" aria-modal="true" aria-labelledby="kw-details-title" tabindex="-1">
+    <aside class="kw-drawer modal-box" data-kw-part="details-drawer" role="dialog" aria-modal="true" aria-labelledby="kw-details-title-{{ $this->getId() }}" tabindex="-1">
         <header class="kw-drawer__head {{ $card['colorClass'] }}" data-kw-part="drawer-header" style="{{ $card['colorStyle'] }}">
-            <h3 id="kw-details-title" data-kw-part="drawer-title">{{ $e->title }}</h3>
+            <h3 id="kw-details-title-{{ $this->getId() }}" data-kw-part="drawer-title">{{ $e->title }}</h3>
             <button type="button" class="kw-btn kw-btn--icon btn btn-sm btn-ghost btn-square" data-kw-part="drawer-close" data-kw-action="close-details" wire:click="closeDetails" aria-label="{{ $t('details.close') }}" data-kw-autofocus>×</button>
         </header>
         <div class="kw-drawer__body" data-kw-part="drawer-body">
-            <dl class="kw-details" data-kw-part="details-list">
-                <dt>{{ $t('details.calendar') }}</dt>
-                <dd>{{ Tr::label($card['source']->label, $locale) }}</dd>
-                <dt>{{ $t('details.when') }}</dt>
-                <dd>{{ $card['when'] }}@if ($e->allDay) ({{ $t('details.all_day') }})@endif</dd>
-                @if ($e->location)
-                    <dt>{{ $t('details.where') }}</dt>
-                    <dd>{{ $e->location }}</dd>
-                @endif
-                @if ($e->description)
-                    <dd class="kw-details__desc" data-kw-part="details-description">{{ $e->description }}</dd>
-                @endif
-                @if ($e->isRecurring)
-                    <dd><span class="kw-badge badge badge-sm badge-soft" data-kw-part="recurring-badge">{{ $t('details.recurring') }}</span></dd>
-                @endif
-                @if ($card['readOnly'])
-                    <dd><span class="kw-badge kw-badge--muted badge badge-sm badge-ghost" data-kw-part="readonly-badge">{{ $t('details.read_only') }}</span></dd>
-                @endif
-                @if ($e->url)
-                    <dd><a href="{{ $e->url }}" class="link link-primary" data-kw-part="details-link" rel="noopener noreferrer nofollow" target="_blank">{{ $t('details.open_link') }}</a></dd>
-                @endif
-            </dl>
+            <section class="kw-drawer__section" data-kw-part="details-summary">
+                <h4 class="kw-drawer__section-title">{{ $t('details.summary') }}</h4>
+                <dl class="kw-details" data-kw-part="details-list">
+                    <dt>{{ $t('details.calendar') }}</dt>
+                    <dd>{{ Tr::label($card['source']->label, $locale) }}</dd>
+                    <dt>{{ $t('details.type') }}</dt>
+                    <dd data-kw-part="details-type">
+                        @if ($e->allDay){{ $t('details.all_day') }}@elseif ($card['multiDay'] ?? false){{ $t('details.multi_day') }}@else{{ $t('details.timed') }}@endif
+                    </dd>
+                    @if ($e->status)
+                        <dt>{{ $t('details.status') }}</dt>
+                        <dd data-kw-part="details-status">{{ $e->status }}</dd>
+                    @endif
+                    @if ($e->category)
+                        <dt>{{ $t('details.category') }}</dt>
+                        <dd data-kw-part="details-category">{{ $e->category }}</dd>
+                    @endif
+                    <dt>{{ $t('details.reference') }}</dt>
+                    <dd data-kw-part="details-reference"><code>{{ $card['ref'] }}</code></dd>
+                    @if ($card['readOnly'])
+                        <dd><span class="kw-badge kw-badge--muted badge badge-sm badge-ghost" data-kw-part="readonly-badge">{{ $t('details.read_only') }}</span></dd>
+                    @endif
+                </dl>
+            </section>
+            <section class="kw-drawer__section" data-kw-part="details-when">
+                <h4 class="kw-drawer__section-title">{{ $t('details.when') }}</h4>
+                <dl class="kw-details">
+                    <dt>{{ $t('details.when') }}</dt>
+                    <dd>{{ $card['when'] }}</dd>
+                    <dt>{{ $t('form.timezone') }}</dt>
+                    <dd>{{ $card['tz'] }}</dd>
+                    @if ($card['continuesBefore'] ?? false)
+                        <dd data-kw-part="continues-before">{{ $t('details.continues_before') }}</dd>
+                    @endif
+                    @if ($card['continuesAfter'] ?? false)
+                        <dd data-kw-part="continues-after">{{ $t('details.continues_after') }}</dd>
+                    @endif
+                    @if ($e->isRecurring)
+                        <dd><span class="kw-badge badge badge-sm badge-soft" data-kw-part="recurring-badge">{{ $t('details.recurring') }}</span></dd>
+                    @endif
+                </dl>
+            </section>
+            @if ($e->location || $e->url)
+                <section class="kw-drawer__section" data-kw-part="details-place">
+                    <h4 class="kw-drawer__section-title">{{ $t('details.where') }}</h4>
+                    <dl class="kw-details">
+                        @if ($e->location)
+                            <dt>{{ $t('details.where') }}</dt>
+                            <dd>{{ $e->location }}</dd>
+                        @endif
+                        @if ($e->url)
+                            <dd><a href="{{ $e->url }}" class="link link-primary" data-kw-part="details-link" rel="noopener noreferrer nofollow" target="_blank">{{ $t('details.open_link') }}</a></dd>
+                        @endif
+                    </dl>
+                </section>
+            @endif
+            @if ($e->description || ($e->fields ?? []) !== [])
+                <section class="kw-drawer__section" data-kw-part="details-fields">
+                    <h4 class="kw-drawer__section-title">{{ $t('details.notes') }}</h4>
+                    <dl class="kw-details">
+                        @if ($e->description)
+                            <dd class="kw-details__desc" data-kw-part="details-description">{{ $e->description }}</dd>
+                        @endif
+                        @foreach ($e->fields as $field)
+                            <dt>{{ $field['label'] }}</dt>
+                            <dd data-kw-part="details-field">{{ $field['value'] }}</dd>
+                        @endforeach
+                    </dl>
+                </section>
+            @endif
 
+            @foreach ($card['sections'] ?? [] as $section)
+                <section class="kw-drawer__section" data-kw-part="related-section">
+                    <h4>{{ $section['label'] }}</h4>
+                    @if ($section['data'] === null)
+                        <button type="button" class="kw-btn" wire:click="detailsSectionPage('{{ $section['key'] }}', 1)">{{ $t('details.load_section') }}</button>
+                    @else
+                        <dl class="kw-details">
+                            @foreach ($section['data']->rows as $row)
+                                <dt>{{ $row['label'] }}</dt><dd>{{ $row['value'] }}</dd>
+                            @endforeach
+                        </dl>
+                        @if ($section['page'] > 1)
+                            <button type="button" class="kw-btn" wire:click="detailsSectionPage('{{ $section['key'] }}', {{ $section['page'] - 1 }})">{{ $t('details.previous_page') }}</button>
+                        @endif
+                        @if ($section['data']->hasMore)
+                            <button type="button" class="kw-btn" wire:click="detailsSectionPage('{{ $section['key'] }}', {{ $section['page'] + 1 }})">{{ $t('details.next_page') }}</button>
+                        @endif
+                    @endif
+                </section>
+            @endforeach
             @if (! $card['source']->readOnly)
                 <div class="kw-drawer__section" data-kw-part="details-movability-section">
                     <div class="kw-drawer__row">

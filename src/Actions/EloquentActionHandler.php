@@ -23,6 +23,7 @@ use Karnoweb\Calendar\Enums\CalendarAction;
 use Karnoweb\Calendar\Exceptions\CalendarAccessDenied;
 use Karnoweb\Calendar\Google\GoogleCalendarHandler;
 use Karnoweb\Calendar\Providers\EloquentEventProvider;
+use Karnoweb\Calendar\Providers\EloquentSeries;
 use Karnoweb\Calendar\Support\CalendarModelRegistry;
 
 /**
@@ -54,19 +55,19 @@ final class EloquentActionHandler implements ActionHandler
 
         $def = $this->models->definition($sourceKey);
 
-        if ($def->handlerClass !== null && $def->handlerClass !== self::class) {
-            /** @var ActionHandler $custom */
-            $custom = $this->container->make($def->handlerClass);
-
-            return $custom->execute($command, $context);
-        }
-
         if ($def->readOnly || ! $def->capabilities->allows($command->action->capability())) {
             return ActionResult::failure(ActionStatus::ReadOnly, 'calendar::calendar.messages.read_only');
         }
 
         if (! $def->hasScopeRule() || $context->isAnonymous()) {
             return ActionResult::failure(ActionStatus::Forbidden, 'calendar::calendar.messages.forbidden');
+        }
+
+        if ($def->handlerClass !== null && $def->handlerClass !== self::class) {
+            /** @var ActionHandler $custom */
+            $custom = $this->container->make($def->handlerClass);
+
+            return $custom->execute($command, $context);
         }
 
         /** @var EloquentEventProvider $provider */
@@ -87,7 +88,7 @@ final class EloquentActionHandler implements ActionHandler
         }
 
         $ref = $command->reference;
-        if ($ref === null || $ref->sourceKey !== $sourceKey || $ref->occurrenceKey !== null) {
+        if ($ref === null || $ref->sourceKey !== $sourceKey) {
             return ActionResult::failure(ActionStatus::NotFound, 'calendar::calendar.messages.not_found');
         }
 
@@ -122,6 +123,10 @@ final class EloquentActionHandler implements ActionHandler
             return ActionResult::failure(ActionStatus::Conflict, 'calendar::calendar.messages.conflict');
         }
 
+        if ($def->persistsRecurrence() && ($ref->occurrenceKey !== null || $command->action->isRecurrenceAction())) {
+            return (new EloquentSeries)->mutate($command, $context, $sourceKey, $def, $provider, $record);
+        }
+
         switch ($command->action) {
             case CalendarAction::Delete:
                 $record->delete();
@@ -130,10 +135,13 @@ final class EloquentActionHandler implements ActionHandler
 
             case CalendarAction::Update:
                 $in = CreateEventInput::fromCommand($command, $context->timezone);
-                if ($in->recurrence !== null && ! $def->supportsRecurrence) {
+                if ($in->recurrence !== null && ! $def->persistsRecurrence()) {
                     return ActionResult::failure(ActionStatus::Unsupported, 'calendar::calendar.messages.unsupported');
                 }
                 $this->applyInputAttributes($record, $def, $in);
+                if ($in->recurrence !== null) {
+                    (new EloquentSeries)->storeRule($record, $def, $in->recurrence);
+                }
                 break;
 
             case CalendarAction::Move:
@@ -184,7 +192,7 @@ final class EloquentActionHandler implements ActionHandler
         }
 
         $in = CreateEventInput::fromCommand($command, $context->timezone);
-        if ($in->recurrence !== null && ! $def->supportsRecurrence) {
+        if ($in->recurrence !== null && ! $def->persistsRecurrence()) {
             return ActionResult::failure(ActionStatus::Unsupported, 'calendar::calendar.messages.unsupported');
         }
 
@@ -206,6 +214,9 @@ final class EloquentActionHandler implements ActionHandler
         }
 
         $this->applyInputAttributes($record, $def, $in);
+        if ($in->recurrence !== null) {
+            (new EloquentSeries)->storeRule($record, $def, $in->recurrence);
+        }
 
         if ($def->writeMapper !== null) {
             ($def->writeMapper)($record, $command->payload, CalendarAction::Create, $context);

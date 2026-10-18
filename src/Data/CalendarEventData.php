@@ -35,6 +35,9 @@ final readonly class CalendarEventData
 
     public ActionCapabilities $capabilities;
 
+    /** @var list<array{label:string, value:string}> */
+    public array $fields;
+
     public function __construct(
         public EventReference $reference,
         string $title,
@@ -50,6 +53,8 @@ final readonly class CalendarEventData
         ?string $status = null,
         ?string $category = null,
         public bool $isRecurring = false,
+        /** @var list<array{label:string, value:string}> */
+        array $fields = [],
     ) {
         if ($allDay) {
             if ($end->format('Y-m-d') <= $start->format('Y-m-d')) {
@@ -70,6 +75,20 @@ final readonly class CalendarEventData
         $this->status = $status === null ? null : SafeCalendarMarkup::text($status, 40);
         $this->category = $category === null ? null : SafeCalendarMarkup::text($category, 60);
         $this->capabilities = $capabilities ?? ActionCapabilities::none();
+        if (count($fields) > 12) {
+            throw new InvalidArgumentException('An event may expose at most 12 display fields.');
+        }
+        $clean = [];
+        foreach ($fields as $row) {
+            if (! is_string($row['label'] ?? null) || ! is_string($row['value'] ?? null)) {
+                throw new InvalidArgumentException('Invalid event display field.');
+            }
+            $clean[] = [
+                'label' => SafeCalendarMarkup::text($row['label'], 80),
+                'value' => SafeCalendarMarkup::text($row['value'], 500),
+            ];
+        }
+        $this->fields = $clean;
     }
 
     public function startAt(string $timezone): DateTimeImmutable

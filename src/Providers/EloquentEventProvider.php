@@ -19,6 +19,7 @@ use Karnoweb\Calendar\Data\CalendarModelDefinition;
 use Karnoweb\Calendar\Data\EventPage;
 use Karnoweb\Calendar\Data\EventQuery;
 use Karnoweb\Calendar\Data\EventReference;
+use Karnoweb\Calendar\Data\OccurrenceData;
 use Karnoweb\Calendar\Exceptions\CalendarAccessDenied;
 use Karnoweb\Calendar\Security\AllowedCssToken;
 use Karnoweb\Calendar\Support\CalendarModelRegistry;
@@ -66,10 +67,18 @@ final class EloquentEventProvider implements EventProvider
         $more = $rows->count() > $query->limit;
         $rows = $rows->take($query->limit);
 
+        $series = new EloquentSeries;
         $events = [];
         foreach ($rows as $row) {
+            if ($def->persistsRecurrence() && $series->hasRule($row, $def)) {
+                array_push($events, ...$series->expand($row, $def, $sourceKey, $context, $query, $this));
+
+                continue;
+            }
             $events[] = $this->toEvent($row, $def, $sourceKey, $context);
         }
+        $more = $more || count($events) > $query->limit;
+        $events = array_slice($events, 0, $query->limit);
 
         return new EventPage(
             $events,
@@ -95,10 +104,6 @@ final class EloquentEventProvider implements EventProvider
             return $custom->find($reference, $context);
         }
 
-        if ($reference->occurrenceKey !== null) {
-            return null;
-        }
-
         $q = $this->scopedQuery($sourceKey, $def, $context);
         $model = $q->getModel();
         if ($model->getKeyType() === 'int' && ! ctype_digit($reference->eventId)) {
@@ -106,8 +111,18 @@ final class EloquentEventProvider implements EventProvider
         }
 
         $record = $q->where($model->getTable().'.'.$model->getKeyName(), $reference->eventId)->first();
+        if ($record === null) {
+            return null;
+        }
+        if ($reference->occurrenceKey !== null) {
+            if (! $def->persistsRecurrence()) {
+                return null;
+            }
 
-        return $record === null ? null : $this->toEvent($record, $def, $sourceKey, $context);
+            return (new EloquentSeries)->findOne($record, $def, $sourceKey, $context, $reference->occurrenceKey, $this);
+        }
+
+        return $this->toEvent($record, $def, $sourceKey, $context);
     }
 
     /**
@@ -185,7 +200,10 @@ final class EloquentEventProvider implements EventProvider
         return $base;
     }
 
-    public function toEvent(Model $record, CalendarModelDefinition $def, string $sourceKey, CalendarContext $context): CalendarEventData
+    /**
+     * @param  array{title?: string, description?: string|null, location?: string|null}|null  $presentation
+     */
+    public function toEvent(Model $record, CalendarModelDefinition $def, string $sourceKey, CalendarContext $context, ?OccurrenceData $occurrence = null, ?array $presentation = null): CalendarEventData
     {
         $utc = new DateTimeZone('UTC');
         $allDay = $def->allDayField !== null
@@ -204,10 +222,15 @@ final class EloquentEventProvider implements EventProvider
             $end = $start->modify("+{$def->defaultDurationMinutes} minutes");
         }
 
-        if ($allDay && $end->format('Y-m-d') <= $start->format('Y-m-d')) {
+        if ($occurrence === null && $allDay && $end->format('Y-m-d') <= $start->format('Y-m-d')) {
             $end = $start->modify('+1 day');
-        } elseif (! $allDay && $end <= $start) {
+        } elseif ($occurrence === null && ! $allDay && $end <= $start) {
             $end = $start->modify("+{$def->defaultDurationMinutes} minutes");
+        }
+        if ($occurrence !== null) {
+            $start = $occurrence->start;
+            $end = $occurrence->end;
+            $allDay = $occurrence->allDay;
         }
 
         $title = $def->titleField instanceof Closure
@@ -254,9 +277,32 @@ final class EloquentEventProvider implements EventProvider
         }
 
         $version = $this->extractVersion($record, $def);
+        $fields = [];
+        foreach ($def->displayFields as $row) {
+            $raw = $record->getAttribute($row['field']);
+            if (! is_scalar($raw) || (string) $raw === '') {
+                continue;
+            }
+            $label = is_array($row['label'])
+                ? (string) ($row['label'][$context->locale] ?? $row['label']['en'] ?? reset($row['label']))
+                : (string) $row['label'];
+            $fields[] = ['label' => $label, 'value' => (string) $raw];
+        }
+
+        if (is_array($presentation)) {
+            if (isset($presentation['title']) && is_string($presentation['title'])) {
+                $title = $presentation['title'];
+            }
+            if (array_key_exists('description', $presentation)) {
+                $description = is_string($presentation['description']) ? $presentation['description'] : null;
+            }
+            if (array_key_exists('location', $presentation)) {
+                $location = is_string($presentation['location']) ? $presentation['location'] : null;
+            }
+        }
 
         return new CalendarEventData(
-            reference: new EventReference($sourceKey, (string) $record->getKey()),
+            reference: $occurrence?->eventRef ?? new EventReference($sourceKey, (string) $record->getKey()),
             title: $title,
             start: $start,
             end: $end,
@@ -269,7 +315,8 @@ final class EloquentEventProvider implements EventProvider
             url: $url,
             status: $status,
             category: $category,
-            isRecurring: false,
+            isRecurring: $occurrence !== null,
+            fields: $fields,
         );
     }
 
@@ -293,28 +340,52 @@ final class EloquentEventProvider implements EventProvider
     private function applyRangeOverlap(Builder $q, string $table, CalendarModelDefinition $def, EventQuery $query): void
     {
         $startCol = $this->qualify($table, $def->startField);
-        $utcStart = $query->range->startInclusive->format('Y-m-d H:i:s');
-        $utcEnd = $query->range->endExclusive->format('Y-m-d H:i:s');
-        $fallbackStart = $query->range->startInclusive
-            ->modify("-{$def->defaultDurationMinutes} minutes")
-            ->format('Y-m-d H:i:s');
+        $endCol = $def->endField === null ? null : $this->qualify($table, $def->endField);
+        $allDayCol = $def->allDayField === null ? null : $this->qualify($table, $def->allDayField);
+        $ruleCol = $def->recurrenceRuleField === null ? null : $this->qualify($table, $def->recurrenceRuleField);
+        $q->where(function (Builder $types) use ($def, $query, $startCol, $endCol, $allDayCol, $ruleCol): void {
+            foreach ([false, true] as $allDay) {
+                $types->orWhere(function (Builder $branch) use ($def, $query, $startCol, $endCol, $allDayCol, $allDay): void {
+                    if ($allDayCol === null) {
+                        if ($allDay !== $def->defaultAllDay) {
+                            $branch->whereRaw('1 = 0');
 
-        if ($def->endField === null) {
-            $q->where($startCol, '<', $utcEnd)
-                ->where($startCol, '>', $fallbackStart);
-
-            return;
-        }
-
-        $endCol = $this->qualify($table, $def->endField);
-        $q->where($startCol, '<', $utcEnd)
-            ->where(function (Builder $sub) use ($endCol, $startCol, $utcStart, $fallbackStart): void {
-                $sub->where($endCol, '>', $utcStart)
-                    ->orWhere(function (Builder $nullEnd) use ($endCol, $startCol, $fallbackStart): void {
-                        $nullEnd->whereNull($endCol)
-                            ->where($startCol, '>', $fallbackStart);
-                    });
-            });
+                            return;
+                        }
+                    } else {
+                        $branch->where(function (Builder $flag) use ($allDayCol, $allDay, $def): void {
+                            $flag->where($allDayCol, $allDay);
+                            if ($allDay === $def->defaultAllDay) {
+                                $flag->orWhereNull($allDayCol);
+                            }
+                        });
+                    }
+                    // Floating all-day dates must be compared in the display timezone.
+                    $tz = new DateTimeZone($allDay ? $query->range->timezone : 'UTC');
+                    $start = $query->range->startInclusive->setTimezone($tz);
+                    $end = $query->range->endExclusive->setTimezone($tz);
+                    $duration = $allDay ? max(1, (int) ceil($def->defaultDurationMinutes / 1440)).' days' : $def->defaultDurationMinutes.' minutes';
+                    $fallback = $start->modify('-'.$duration)->format('Y-m-d H:i:s');
+                    $branch->where($startCol, '<', $end->format('Y-m-d H:i:s'));
+                    if ($endCol === null) {
+                        $branch->where($startCol, '>', $fallback);
+                    } else {
+                        $branch->where(function (Builder $overlap) use ($endCol, $startCol, $start, $fallback): void {
+                            $overlap->where($endCol, '>', $start->format('Y-m-d H:i:s'))
+                                ->orWhere(function (Builder $missing) use ($endCol, $startCol, $fallback): void {
+                                    $missing->whereNull($endCol)->where($startCol, '>', $fallback);
+                                });
+                        });
+                    }
+                });
+            }
+            if ($ruleCol !== null) {
+                $windowEnd = $query->range->endExclusive->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+                $types->orWhere(function (Builder $series) use ($ruleCol, $startCol, $windowEnd): void {
+                    $series->whereNotNull($ruleCol)->where($startCol, '<', $windowEnd);
+                });
+            }
+        });
     }
 
     /** @param Builder<Model> $q */

@@ -63,3 +63,5 @@ php vendor/bin/testbench serve --port=8765
 - داشبورد: `/calendar/dashboard`
 
 جزئیات کامل: [USAGE-FA.md](USAGE-FA.md)
+
+سناریوهای end-to-end (Task Manager، LMS، Google): [examples/README.md](examples/README.md). یکپارچه‌سازی مرحله‌به‌مرحله: [quickstart.md](quickstart.md).
